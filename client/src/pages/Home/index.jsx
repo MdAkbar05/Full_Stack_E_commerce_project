@@ -14,7 +14,7 @@ export const Home = () => {
     <>
       <main className="text-center pt-5 text-4xl">
         {" "}
-        Make Structure of Home page
+        Make Structure of Home page Yes I have been update the project
       </main>
     </>
   );
