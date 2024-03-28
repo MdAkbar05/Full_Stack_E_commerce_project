@@ -21,6 +21,6 @@
 -->User Email exist check
 -->Create JsonWebToken npm
 -->Create smtp server setup & prepare email
--->send email with nodemailer
+-->send email with nodemailer with SMTP Server
 -->POST: /api/users/verify --> verify + register into database
 -->Register with profile images/ files
