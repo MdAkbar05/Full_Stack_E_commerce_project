@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const xssClean = require("xss-clean");
+const cors = require("cors");
 // const ratelimit = require("express-rate-limit");
 const userRouter = require("./routes/user.router");
 const seedRouter = require("./routes/seedRouter");
@@ -9,11 +10,11 @@ const createError = require("http-errors");
 const { errorResponse } = require("./controllers/responseController");
 
 const app = express();
-
 app.use(xssClean());
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
 
 app.use("/api/users/", userRouter);
 app.use("/api/seed/", seedRouter);
