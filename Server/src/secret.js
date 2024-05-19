@@ -5,7 +5,7 @@ const mongodb_url =
   process.env.MONGODB_URL || "mongodb://localhost:27017/ecommerceMernDB";
 
 const defaultImagePath =
-  process.env.DEFAULT_USER_IMAGE_PATH || "public/images/users/defaultUsers.png";
+  process.env.DEFAULT_USER_IMAGE_PATH || "/images/users/defaultUsers.png";
 
 const jwtActivationKey =
   process.env.JWT_ACTIVATION_KEY || "HDSTRET34895UHWER8934_@$%";

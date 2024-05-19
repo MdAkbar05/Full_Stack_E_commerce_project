@@ -1,22 +1,21 @@
 const multer = require("multer");
 const path = require("path");
 const createError = require("http-errors");
-const {
-  uploadUserImg,
-  allowedUserImgTypes,
-  maxUserImgSize,
-} = require("../config/info");
+const fs = require("fs.extra");
+const { allowedUserImgTypes, maxUserImgSize } = require("../config/info");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadUserImg);
+    const destPath = path.join(
+      __dirname,
+      "../../../client/public/images/users/"
+    );
+    fs.mkdirSync(destPath, { recursive: true });
+    cb(null, destPath);
   },
   filename: function (req, file, cb) {
     const extName = path.extname(file.originalname);
-    cb(
-      null,
-      Date.now() + "-" + file.originalname.replace(extName, "") + extName
-    );
+    cb(null, file.originalname.replace(extName, "") + extName);
   },
 });
 

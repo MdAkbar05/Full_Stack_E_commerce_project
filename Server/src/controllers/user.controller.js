@@ -89,7 +89,8 @@ const delteUserById = async (req, res, next) => {
 
 const processRegister = async (req, res, next) => {
   try {
-    const { name, email, password, address, phone, image } = req.body;
+    const { name, email, password, address, phone } = req.body;
+    const image = `/images/users/${req.file ? req.file.filename : ""}`;
 
     //user exist check
     const userExists = await User.exists({ email: email });

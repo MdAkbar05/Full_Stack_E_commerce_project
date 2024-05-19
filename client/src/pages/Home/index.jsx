@@ -1,29 +1,42 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+
 export const Home = () => {
   const [users, setUsers] = useState([]);
-  const [userId, setuserId] = useState("");
-  const [toastMSG, settoastMSG] = useState("");
-  useEffect(() => {
-    fetch("http://localhost:3000/api/users")
-      .then((response) => response.json())
-      .then((data) => {
-        setUsers(data.payload.users);
-      });
-  }, [userId]);
+  const [toastMSG, setToastMSG] = useState("");
 
-  const handleDelete = () => {
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
     try {
-      const response = axios.delete(
-        `http://localhost:3000/api/users/${userId}`
-      );
-      if (response) {
-        settoastMSG("The user was deleted!");
-      }
+      const response = await fetch("http://localhost:3000/api/users");
+      const data = await response.json();
+      setUsers(data.payload.users);
     } catch (error) {
-      settoastMSG("Error with deleting Users");
+      console.error("Error fetching users:", error);
     }
   };
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:3000/api/users/${id}`
+      );
+      console.log(response);
+      if (response.status === 201) {
+        setToastMSG("The user was deleted!");
+        setUsers(users.filter((user) => user._id !== id));
+      }
+    } catch (error) {
+      setToastMSG("Error with deleting Users");
+    }
+  };
+
+  setTimeout(() => {
+    setToastMSG("");
+  }, 10000);
   return (
     <>
       <main className="text-center pt-5 text-4xl">
@@ -54,20 +67,14 @@ export const Home = () => {
                   <td className="text-sm py-2 px-4 border-b">{user.email}</td>
                   <td className="text-sm py-2 px-4 border-b">{user.address}</td>
                   <td className="text-sm py-2 px-4 border-b">{user.phone}</td>
-                  <td className="text-sm  px-4 border-b space-x-2">
+                  <td className="text-sm px-4 border-b space-x-2">
                     <button
                       className="text-sm w-auto h-8 bg-red-500 text-white px-2 rounded-lg"
-                      onClick={() => {
-                        setuserId(user._id);
-                        handleDelete();
-                      }}
+                      onClick={() => handleDelete(user._id)}
                     >
                       Delete
                     </button>
-                    <button
-                      className="text-sm w-auto h-8 bg-red-500 text-white  px-2 rounded-lg"
-                      onClick={() => {}}
-                    >
+                    <button className="text-sm w-auto h-8 bg-red-500 text-white px-2 rounded-lg">
                       Edit
                     </button>
                   </td>
@@ -75,9 +82,11 @@ export const Home = () => {
               ))}
             </tbody>
           </table>
-          <p className="text-center absolute top-16 text-green-700 bg-green-200 left-3 w-full text-sm">
-            {toastMSG}
-          </p>
+          {toastMSG && (
+            <p className="text-center absolute top-16 text-green-700 bg-green-200 left-3 w-full text-sm">
+              {toastMSG}
+            </p>
+          )}
         </div>
       </main>
     </>

@@ -9,20 +9,29 @@ const VerifyUser = () => {
   };
   const actionAPI = `http://localhost:3000/api/users/verify/${token}`;
   return (
-    <form method="post" action={actionAPI}>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Token</label>
-        <input
-          type="text"
-          name="token"
-          onChange={handleToken}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          required
-        />
-      </div>
+    <div className="verify-area d-flex justify-center align-middle py-10 px-10">
+      <form method="post" action={actionAPI}>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Token
+          </label>
+          <input
+            type="text"
+            name="token"
+            onChange={handleToken}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
 
-      <button type="submit">Verify Account</button>
-    </form>
+        <button
+          className="bg-blue-500 text-white mt-2 p-2 rounded-md"
+          type="submit"
+        >
+          Verify Account
+        </button>
+      </form>
+    </div>
   );
 };
 
