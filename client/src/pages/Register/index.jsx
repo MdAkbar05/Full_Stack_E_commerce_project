@@ -1,9 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+
 const Register = () => {
   const navigate = useNavigate();
+
   return (
     <div className="max-w-md mx-auto mt-10">
+      <p className="text-center text-2xl px-2 py-2 text-blue-700">
+        Register Your Accounts
+      </p>
       <form
         action="http://localhost:3000/api/users/process-register"
         method="POST"
@@ -86,13 +91,25 @@ const Register = () => {
         <div>
           <button
             type="submit"
+            onClick={() => {
+              // navigate("/verify-user");
+            }}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            onClick={navigate("/verify-user")}
           >
             Register
           </button>
         </div>
       </form>
+      <div className="mt-4">
+        <button
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black bg-slate-300 hover:bg-slate-500-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          onClick={() => {
+            navigate("/");
+          }}
+        >
+          Back to users
+        </button>
+      </div>
     </div>
   );
 };

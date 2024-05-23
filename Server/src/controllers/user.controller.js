@@ -12,7 +12,7 @@ const getUsers = async (req, res, next) => {
   try {
     const search = req.query.search || "";
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 5;
+    const limit = Number(req.query.limit) || 10;
 
     const searchRegEx = new RegExp(".*" + search + ".*", "i");
     const filter = {
@@ -127,6 +127,7 @@ const processRegister = async (req, res, next) => {
       message: `Please go to your ${email} for completing your registration process.`,
       payload: { token },
     });
+    console.log(token);
   } catch (error) {
     next(error);
   }

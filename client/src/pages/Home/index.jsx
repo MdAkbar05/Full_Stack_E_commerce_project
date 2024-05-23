@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export const Home = () => {
   const [users, setUsers] = useState([]);
   const [toastMSG, setToastMSG] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchUsers();
@@ -82,6 +84,16 @@ export const Home = () => {
               ))}
             </tbody>
           </table>
+          <div className="flex justify-start text-sm px-10 mt-4">
+            <button
+              className="bg-blue-500 text-white px-5 py-2 rounded-lg"
+              onClick={() => {
+                navigate("/process-register");
+              }}
+            >
+              Add User
+            </button>
+          </div>
           {toastMSG && (
             <p className="text-center absolute top-16 text-green-700 bg-green-200 left-3 w-full text-sm">
               {toastMSG}
