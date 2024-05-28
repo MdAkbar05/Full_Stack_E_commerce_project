@@ -35,11 +35,11 @@ const validateUserRegistration = [
     .withMessage("Phone is required")
     .isLength({ min: 5 })
     .withMessage("Phoine should be at least 5 characters long"),
-  body("image")
-    .trim()
-    .optional()
-    .isString()
-    .withMessage("Image string is required"),
+  // body("image")
+  //   .trim()
+  //   .optional()
+  //   .isString()
+  //   .withMessage("Image string is required"),
 ];
 
 module.exports = { validateUserRegistration };
