@@ -1,13 +1,22 @@
+import axios from "axios";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const VerifyUser = () => {
   const [token, setToken] = useState("");
-
+  const navigate = useNavigate();
   const handleToken = (e) => {
     setToken(e.target.value);
     console.log(e.target.value);
   };
   const actionAPI = `http://localhost:3000/api/users/verify/${token}`;
+
+  const handleClick = () => {
+    axios.post(actionAPI);
+    alert("user was created successfully");
+    navigate("/"); // Redirect to the users page after successful registration
+  };
+
   return (
     <div
       style={{
@@ -32,6 +41,7 @@ const VerifyUser = () => {
           />
         </div>
 
+<<<<<<< HEAD
         <button
           className="bg-blue-500 text-white mt-2 p-2 rounded-md"
           type="submit"
@@ -40,6 +50,12 @@ const VerifyUser = () => {
         </button>
       </form>
     </div>
+=======
+      <button type="submit" onClick={handleClick}>
+        Verify Account
+      </button>
+    </form>
+>>>>>>> 6707704f045e36105d17115f4376c677a38031a2
   );
 };
 
