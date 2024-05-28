@@ -117,11 +117,11 @@ const processRegister = async (req, res, next) => {
         `,
     };
     //send email with nodemailer
-    try {
-      await emailWithNodeMailer(emailData);
-    } catch (emailError) {
-      next(createError(500, "Failed to send verification"));
-    }
+    // try {
+    //   await emailWithNodeMailer(emailData);
+    // } catch (emailError) {
+    //   next(createError(500, "Failed to send verification"));
+    // }
     return successResponse(res, {
       statusCode: 200,
       message: `Please go to your ${email} for completing your registration process.`,
