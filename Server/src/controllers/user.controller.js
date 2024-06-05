@@ -7,6 +7,8 @@ const { deleteImage } = require("../services/deleteImage");
 const { createJSONWebToken } = require("../services/jsonWebToken");
 const { jwtActivationKey, clientURL } = require("../secret");
 const emailWithNodeMailer = require("../services/email");
+const runValidation = require("../validations");
+const path = require("node:path");
 
 const getUsers = async (req, res, next) => {
   try {
@@ -52,6 +54,7 @@ const getUsers = async (req, res, next) => {
 
 const getUserById = async (req, res, next) => {
   try {
+    console.log(req.body.userId);
     const id = req.params.id;
     const options = { password: 0 };
     const user = await findWithId(User, id, options);
@@ -65,32 +68,12 @@ const getUserById = async (req, res, next) => {
   }
 };
 
-const delteUserById = async (req, res, next) => {
-  try {
-    const id = req.params.id;
-    const options = { password: 0 };
-    const user = await findWithId(User, id, options);
-
-    const userImagePath = user.image;
-
-    deleteImage(userImagePath);
-
-    await User.findByIdAndDelete({ _id: id, isAdmin: false });
-
-    return successResponse(res, {
-      statusCode: 201,
-      message: "User were delete successfully.",
-      // payload: { user },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 const processRegister = async (req, res, next) => {
   try {
     const { name, email, password, address, phone } = req.body;
-    const image = `/images/users/${req.file ? req.file.filename : ""}`;
+    const imgPath = req.file ? req.file.path : "default.png";
+    const imageName = path.basename(imgPath);
+    const image = `/images/users/${imageName}`;
 
     //user exist check
     const userExists = await User.exists({ email: email });
@@ -169,10 +152,107 @@ const activateUserAccount = async (req, res, next) => {
     }
   }
 };
+
+const delteUserById = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const options = { password: 0 };
+    const user = await findWithId(User, id, options);
+
+    const userImagePath = user.image;
+
+    deleteImage(userImagePath);
+
+    await User.findByIdAndDelete({ _id: id, isAdmin: false });
+
+    return successResponse(res, {
+      statusCode: 201,
+      message: "User were delete successfully.",
+      // payload: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateUserById = async (req, res, next) => {
+  try {
+    const UserId = req.params.id;
+    const updateOption = { new: true, contex: "query" };
+
+    const { name, address, phone } = req.body;
+    const updates = {};
+
+    // if (req.body.name) {
+    //   updates.name = req.body.name;
+    // }
+    if (req.body.email) {
+      throw createError(400, "Email can not be update");
+    }
+    // if (req.body.password) {
+    //   updates.password = req.body.password;
+    // }
+    // if (req.body.address) {
+    //   updates.address = req.body.address;
+    // }
+    // if (req.body.phone) {
+    //   updates.phone = req.body.phone;
+    // }
+
+    // update user in better way
+
+    for (key in req.body) {
+      if (["name", "password", "address", "phone"].includes(key)) {
+        updates[key] = req.body[key];
+      }
+      if (["email"].includes(key)) {
+        throw createError(400, "Email can not be update");
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      UserId,
+      updates,
+      // {
+      //   name: name && name,
+      //   address: address && address,
+      //   phone: phone && phone,
+      // },
+      updateOption
+    );
+
+    if (!updatedUser) {
+      throw createError(404, "User with this Id does not exist");
+    }
+    return successResponse(res, {
+      statusCode: 200,
+      message: "User was update successfully.",
+      payload: { updatedUser },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+// const updateImageById = async (req, res, next) => {
+//   try {
+//     const userId = req.params.id;
+//     const image = `/images/users/${req.file ? req.file.filename : ""}`;
+//     const user = await User.findById({ _id: userId });
+//     await user.updateOne({ image: image });
+
+//     return successResponse(res, {
+//       statusCode: 200,
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
 module.exports = {
   getUsers,
   getUserById,
   delteUserById,
   processRegister,
   activateUserAccount,
+  updateUserById,
 };

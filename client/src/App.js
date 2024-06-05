@@ -1,11 +1,7 @@
 import Index from "./Routes";
 
 function App() {
-  return (
-    <>
-      <Index />
-    </>
-  );
+  return <Index />;
 }
 
 export default App;

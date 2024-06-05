@@ -9,6 +9,7 @@ const defaultImagePath =
 
 const jwtActivationKey =
   process.env.JWT_ACTIVATION_KEY || "HDSTRET34895UHWER8934_@$%";
+const jwtAccessKey = process.env.JWT_ACCESS_KEY || "HHSADFSHODFSDF";
 
 const smtpUser = process.env.SMTP_USERNAME || "";
 const smtpPass = process.env.SMTP_PASSWORD || "";
@@ -20,6 +21,7 @@ module.exports = {
   mongodb_url,
   defaultImagePath,
   jwtActivationKey,
+  jwtAccessKey,
   smtpUser,
   smtpPass,
   clientURL,

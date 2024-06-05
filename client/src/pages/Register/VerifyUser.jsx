@@ -27,7 +27,7 @@ const VerifyUser = () => {
       }}
       className="verify-area "
     >
-      <form method="post" action={actionAPI}>
+      <form>
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Token
@@ -41,21 +41,11 @@ const VerifyUser = () => {
           />
         </div>
 
-<<<<<<< HEAD
-        <button
-          className="bg-blue-500 text-white mt-2 p-2 rounded-md"
-          type="submit"
-        >
+        <button type="submit" onClick={handleClick}>
           Verify Account
         </button>
       </form>
     </div>
-=======
-      <button type="submit" onClick={handleClick}>
-        Verify Account
-      </button>
-    </form>
->>>>>>> 6707704f045e36105d17115f4376c677a38031a2
   );
 };
 
