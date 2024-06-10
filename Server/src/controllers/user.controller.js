@@ -54,7 +54,7 @@ const getUsers = async (req, res, next) => {
 
 const getUserById = async (req, res, next) => {
   try {
-    console.log(req.body.userId);
+    // console.log(req.users);
     const id = req.params.id;
     const options = { password: 0 };
     const user = await findWithId(User, id, options);

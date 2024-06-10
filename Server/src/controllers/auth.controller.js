@@ -11,34 +11,29 @@ const handleLogin = async (req, res, next) => {
     // email, password req.body
     const { email, password } = req.body;
     //is exits
-    const userExits = await User.findOne({ email: email });
+    const users = await User.findOne({ email: email });
 
-    console.log(userExits);
-    if (!userExits) {
+    if (!users) {
       throw createError(
         404,
         "User does not exist with this email. Please register first."
       );
     }
     // compare the password
-    const isPassword = await bcrpt.compare(password, userExits.password);
+    const isPassword = await bcrpt.compare(password, users.password);
     if (!isPassword) {
       throw createError(401, "password did not match");
     }
     // isBanned
 
-    if (userExits.isBanned) {
+    if (users.isBanned) {
       throw createError(403, "You are banned. Please contact with authority");
     }
     // check valid user with token by cookie
-    const accessToken = createJSONWebToken(
-      { id: userExits._id },
-      jwtAccessKey,
-      "5m"
-    );
+    const accessToken = createJSONWebToken({ users }, jwtAccessKey, "15m");
 
     res.cookie("accessToken", accessToken, {
-      maxAge: 10 * 60 * 1000, // 10min
+      maxAge: 15 * 60 * 1000, // 15min
       httpOnly: true,
       secure: true,
       sameSite: "none",
@@ -47,7 +42,7 @@ const handleLogin = async (req, res, next) => {
     return successResponse(res, {
       statusCode: 200,
       message: "User loggedin successfully",
-      payload: { userExits },
+      payload: { users },
     });
   } catch (error) {
     next(error);
