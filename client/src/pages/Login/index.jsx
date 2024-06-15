@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import AuthContext from "../../Helpers/UsersContext";
@@ -20,15 +20,15 @@ const Login = () => {
     }));
   };
 
+  useEffect(() => {}, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = new FormData();
     data.append("email", formData.email);
     data.append("password", formData.password);
-    console.log(data);
 
     try {
-      console.log(data);
       const response = await axios.post(
         "http://localhost:3000/api/auth/login",
         data,
@@ -37,12 +37,24 @@ const Login = () => {
             "Content-Type": "multipart/formData",
             "Content-Type": "application/json",
           },
+          withCredentials: true, // Ensure cookies are sent
         }
       );
+      console.log(response);
       if (response.status === 200) {
-        setUser(true);
-        setUserName(response.data.payload.userExits.name);
-        setImg(response.data.payload.userExits.image);
+        // Save user state to localStorage
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            isUser: true,
+            userName: response.data.payload.users.name,
+            img: response.data.payload.users.image,
+          })
+        );
+        const profile = JSON.parse(localStorage.getItem("user"));
+        setUser(profile.isUser);
+        setUserName(profile.userName);
+        setImg(profile.img);
         navigate("/");
       }
     } catch (error) {

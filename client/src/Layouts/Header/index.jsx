@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogPanel } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { FaShoppingCart, FaHeart, FaUser, FaLockOpen } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import AuthContext from "../../Helpers/UsersContext";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -14,17 +17,47 @@ const navigation = [
 ];
 
 export default function Header() {
+  const notify = (msg) => toast(msg);
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const { userName, user, setUser, img } = useContext(AuthContext);
-  console.log(userName, user);
+  const { userName, user, setUser, img, setUserName, setImg } =
+    useContext(AuthContext);
 
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const { isUser, userName, img } = storedUser;
+    if (storedUser) {
+      setUser(isUser);
+      setUserName(userName);
+      setImg(img);
+    }
+  }, []);
   const handleLogout = () => {
-    console.log("logout successs");
+    try {
+      // but when I refreshed without logout . my header user state was clear initial stuation
+      const response = axios.post(
+        "http://localhost:3000/api/auth/logout",
+        {},
+        {
+          withCredentials: true, // Ensure cookies are sent
+        }
+      );
+      if (response.status === 200) {
+        // Clear user state from localStorage
+        localStorage.removeItem("user");
+        setUser(false);
+        setUserName(false);
+        setImg("");
+        notify(`${userName} logout successful`);
+        navigate("/login");
+      }
+    } catch (error) {}
   };
 
   return (
     <nav className="bg-white shadow-lg">
+      <ToastContainer />
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Left side: Brand and Logo */}
@@ -98,7 +131,7 @@ export default function Header() {
                 <Link
                   onClick={() => {
                     setUser(false);
-                    handleLogout;
+                    handleLogout();
                   }}
                   to="/"
                   className="ml-4 text-gray-600 hover:text-gray-800"

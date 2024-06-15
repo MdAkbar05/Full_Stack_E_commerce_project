@@ -16,7 +16,12 @@ app.use(xssClean());
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3001", // Your frontend URL
+    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+  })
+);
 app.use(cookieParser());
 
 app.use("/api/users/", userRouter);

@@ -5,9 +5,10 @@ const AuthContext = createContext();
 
 // Create a provider component
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(false);
-  const [userName, setUserName] = useState(false);
-  const [img, setImg] = useState("");
+  const profile = JSON.parse(localStorage.getItem("user"));
+  const [user, setUser] = useState(profile.isUser);
+  const [userName, setUserName] = useState(profile.userName);
+  const [img, setImg] = useState(profile.img);
 
   return (
     <AuthContext.Provider
