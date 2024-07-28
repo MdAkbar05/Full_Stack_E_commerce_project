@@ -24,35 +24,46 @@ export default function Header() {
   const { userName, user, setUser, img, setUserName, setImg } =
     useContext(AuthContext);
 
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    const { isUser, userName, img } = storedUser;
-    if (storedUser) {
-      setUser(isUser);
-      setUserName(userName);
-      setImg(img);
-    }
-  }, []);
-  const handleLogout = () => {
+  // Handle logout action
+  const handleLogout = async () => {
     try {
-      // but when I refreshed without logout . my header user state was clear initial stuation
-      const response = axios.post(
+      const response = await axios.post(
         "http://localhost:3000/api/auth/logout",
         {},
         {
           withCredentials: true, // Ensure cookies are sent
         }
       );
+      // Handle Success Response 200
       if (response.status === 200) {
         // Clear user state from localStorage
+        const userData = {
+          isUser: false,
+          userName: null,
+          img: null,
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
+
         localStorage.removeItem("user");
-        setUser(false);
-        setUserName(false);
-        setImg("");
+
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        if (storedUser) {
+          const { isUser, userName, img } = storedUser;
+          setUser(isUser);
+          setUserName(userName);
+          setImg(img);
+        }
         notify(`${userName} logout successful`);
         navigate("/login");
       }
-    } catch (error) {}
+      // Handle 401 error
+      if (response.status === 401) {
+        notify(`Please Login first`);
+        navigate("/login");
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
   };
 
   return (
@@ -121,12 +132,16 @@ export default function Header() {
                   <FaHeart className="text-xl" />
                 </Link>
                 {/* User Link  */}
-                <Link to="/" className="ml-4 text-gray-600 hover:text-gray-800">
+                <Link
+                  to="/profile-user"
+                  className="ml-4 text-gray-600 hover:text-gray-800"
+                >
                   <img
                     src={img}
                     alt={userName}
                     className="w-8 h-8 rounded-full mx-auto border-2"
                   />
+                  {userName}
                 </Link>
                 <Link
                   onClick={() => {

@@ -6,8 +6,13 @@ const {
   processRegister,
   activateUserAccount,
   updateUserById,
+  handleBanUser,
+  handleUnbanUser,
+  handleUpdatePasswords,
+  handleForgetPassword,
+  handleResetPassword,
 } = require("../controllers/user.controller");
-const upload = require("../middlewares/uploadFiles");
+const { userProfileUpload } = require("../middlewares/uploadFiles");
 const { validateUserRegistration } = require("../validations/auth");
 const runValidation = require("../validations");
 const {
@@ -17,19 +22,39 @@ const {
   isBanned,
 } = require("../middlewares/Auth");
 const userRouter = express.Router();
-// GET: api/
+// GET: api/users/
 userRouter.get("/", isLoggedIn, isAdmin, isBanned, getUsers);
-userRouter.get("/:id", isLoggedIn, getUserById);
+userRouter.get("/:id([0-9a-fA-F]{24})", isLoggedIn, getUserById);
 userRouter.post(
   "/process-register/",
   isLoggedOut,
-  upload.single("image"),
+  userProfileUpload.single("image"),
   validateUserRegistration,
   runValidation,
   processRegister
 );
 userRouter.post("/verify/:token", isLoggedOut, activateUserAccount);
-userRouter.delete("/:id", delteUserById);
-userRouter.put("/:id", updateUserById);
+userRouter.delete("/:id([0-9a-fA-F]{24})", delteUserById);
+userRouter.put("/reset-password/", handleResetPassword);
+userRouter.put("/:id([0-9a-fA-F]{24})", updateUserById);
+userRouter.put(
+  "/ban-user/:id([0-9a-fA-F]{24})",
+  isLoggedIn,
+  isAdmin,
+  handleBanUser
+);
+userRouter.put(
+  "/unban-user/:id([0-9a-fA-F]{24})",
+  isLoggedIn,
+  isAdmin,
+  handleUnbanUser
+);
+userRouter.put(
+  "/update-password/:id([0-9a-fA-F]{24})",
+  isLoggedIn,
+  handleUpdatePasswords
+);
+
+userRouter.post("/forget-password/", isLoggedOut, handleForgetPassword);
 
 module.exports = userRouter;

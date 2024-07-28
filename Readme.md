@@ -24,3 +24,18 @@
 -->send email with nodemailer with SMTP Server
 -->POST: /api/users/verify --> verify + register into database
 -->Register with profile images/ files
+
+--> Create Category Models and input validations
+--> Category CRUD - Create Category Post:api/categories/
+--> Category CRUD - Get Categories get:api/categories/
+--> Category CRUD - Get Category get:api/categories/:slug
+--> Category CRUD - Update Category put:api/categories/:slug
+--> Category CRUD - Delete Category delete:api/categories/:slug
+--
+
+--> Products Model
+--> Products CRUD - Create Products post:api/products/
+--> Products CRUD - Get Products get:api/products
+--> Products CRUD - Get Product get:api/products/:id
+--> Products CRUD - Update Product put:api/products/:id
+--> Products CRUD - Delete Product delete:api/products/:id

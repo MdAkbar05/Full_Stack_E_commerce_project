@@ -6,7 +6,10 @@ const isLoggedIn = async (req, res, next) => {
   try {
     const token = req.cookies.accessToken;
     if (!token) {
-      throw createError(401, "Access token not found. Please Login first");
+      throw createError(
+        401,
+        "Your are already logout. Now you can login your account."
+      );
     }
 
     const decoded = jwt.verify(token, jwtAccessKey);

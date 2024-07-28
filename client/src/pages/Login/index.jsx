@@ -1,10 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import AuthContext from "../../Helpers/UsersContext";
-
+// reactIcon
+import { FaEyeSlash, FaRegEye } from "react-icons/fa";
 const Login = () => {
-  const { setUser, setUserName, setImg } = useContext(AuthContext);
+  const [loading, setloading] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const { setUser, setUserName, setImg, setEmail, setAddress, setID } =
+    useContext(AuthContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
@@ -20,9 +24,8 @@ const Login = () => {
     }));
   };
 
-  useEffect(() => {}, []);
-
   const handleSubmit = async (e) => {
+    setloading(true);
     e.preventDefault();
     const data = new FormData();
     data.append("email", formData.email);
@@ -49,12 +52,19 @@ const Login = () => {
             isUser: true,
             userName: response.data.payload.users.name,
             img: response.data.payload.users.image,
+            email: response.data.payload.users.email,
+            address: response.data.payload.users.address,
+            id: response.data.payload.users._id,
           })
         );
         const profile = JSON.parse(localStorage.getItem("user"));
         setUser(profile.isUser);
         setUserName(profile.userName);
         setImg(profile.img);
+        setEmail(profile.email);
+        setAddress(profile.address);
+        setloading(false);
+        setID(profile.id);
         navigate("/");
       }
     } catch (error) {
@@ -62,8 +72,13 @@ const Login = () => {
         "There was a problem with the registration request:",
         error.response.data.message
       );
+      setloading(false);
       alert(error.response.data.message);
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
   };
 
   return (
@@ -86,18 +101,33 @@ const Login = () => {
           />
         </div>
 
-        <div>
+        <div className="relative">
           <label className="block text-sm font-medium text-gray-700">
             Password
           </label>
           <input
-            type="password"
+            type={isPasswordVisible ? "text" : "password"}
             name="password"
             value={formData.password}
             onChange={handleChange}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             required
           />
+          <span
+            className="absolute right-2 top-9 cursor-pointer"
+            onClick={togglePasswordVisibility}
+          >
+            {isPasswordVisible ? <FaEyeSlash /> : <FaRegEye />}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Link
+            to="/forget-pass"
+            className="text-sm font-semibold text-blue-700 hover:text-blue-900"
+          >
+            Forgot Password?
+          </Link>
         </div>
 
         <div>
@@ -105,7 +135,7 @@ const Login = () => {
             type="submit"
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Login
+            {loading ? "Loading..." : "Login"}
           </button>
         </div>
       </form>

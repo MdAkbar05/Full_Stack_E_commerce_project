@@ -10,6 +10,8 @@ const seedRouter = require("./routes/seedRouter");
 const createError = require("http-errors");
 const { errorResponse } = require("./controllers/responseController");
 const authRouter = require("./routes/authRouter");
+const categoryRouter = require("./routes/categoryRouter");
+const productsRouter = require("./routes/productsRouter");
 
 const app = express();
 app.use(xssClean());
@@ -27,6 +29,8 @@ app.use(cookieParser());
 app.use("/api/users/", userRouter);
 app.use("/api/auth/", authRouter);
 app.use("/api/seed/", seedRouter);
+app.use("/api/categories/", categoryRouter);
+app.use("/api/products/", productsRouter);
 
 app.get("/", (req, res) => {
   res.status(200).json({

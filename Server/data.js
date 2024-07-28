@@ -22,6 +22,30 @@ const data = {
       address: "Agrabad , Halishar, chittagong",
     },
   ],
+  products: [
+    {
+      name: "Super White",
+      slug: "super-white",
+      description: "This is a super white product of square company.",
+      price: 90,
+      quantity: 100,
+      sold: 40,
+      shipping: 0,
+      image: "images/products/super-white.png",
+      category: "66a51cc849ee204c7ccc9761",
+    },
+    {
+      name: "Keya Soap",
+      slug: "keya-soap",
+      description: "This is a Keya soap products of keya company LTD..",
+      price: 55,
+      quantity: 100,
+      sold: 20,
+      shipping: 10,
+      image: "images/products/keya-soap.png",
+      category: "66a52de5e7e8d7ee9bf57c76",
+    },
+  ],
 };
 
 module.exports = data;

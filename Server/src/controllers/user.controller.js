@@ -1,14 +1,23 @@
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const createError = require("http-errors");
 const User = require("../models/users.model");
 const { successResponse } = require("./responseController");
 const { findWithId } = require("../services/findItem");
 const { deleteImage } = require("../services/deleteImage");
 const { createJSONWebToken } = require("../services/jsonWebToken");
-const { jwtActivationKey, clientURL } = require("../secret");
+const {
+  jwtActivationKey,
+  clientURL,
+  jwt_reset_pass_key,
+} = require("../secret");
 const emailWithNodeMailer = require("../services/email");
 const runValidation = require("../validations");
 const path = require("node:path");
+const {
+  forgetPasswordByEmail,
+  resetPassword,
+} = require("../services/userServices");
 
 const getUsers = async (req, res, next) => {
   try {
@@ -32,7 +41,7 @@ const getUsers = async (req, res, next) => {
       .skip((page - 1) * limit);
 
     const count = await User.find(filter).countDocuments();
-    if (!users) throw createError(404, "No user found");
+    if (!users || users.length === 0) throw createError(404, "No user found");
 
     return successResponse(res, {
       statusCode: 200,
@@ -180,46 +189,25 @@ const updateUserById = async (req, res, next) => {
     const UserId = req.params.id;
     const updateOption = { new: true, contex: "query" };
 
-    const { name, address, phone } = req.body;
-    const updates = {};
+    let updates = {};
 
-    // if (req.body.name) {
-    //   updates.name = req.body.name;
-    // }
     if (req.body.email) {
       throw createError(400, "Email can not be update");
     }
-    // if (req.body.password) {
-    //   updates.password = req.body.password;
-    // }
-    // if (req.body.address) {
-    //   updates.address = req.body.address;
-    // }
-    // if (req.body.phone) {
-    //   updates.phone = req.body.phone;
-    // }
 
-    // update user in better way
+    const allowedField = ["name", "password", "address", "phone"];
 
-    for (key in req.body) {
-      if (["name", "password", "address", "phone"].includes(key)) {
+    for (const key in req.body) {
+      if (allowedField.includes(key)) {
         updates[key] = req.body[key];
-      }
-      if (["email"].includes(key)) {
-        throw createError(400, "Email can not be update");
       }
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       UserId,
       updates,
-      // {
-      //   name: name && name,
-      //   address: address && address,
-      //   phone: phone && phone,
-      // },
       updateOption
-    );
+    ).select("-password");
 
     if (!updatedUser) {
       throw createError(404, "User with this Id does not exist");
@@ -233,20 +221,127 @@ const updateUserById = async (req, res, next) => {
     next(error);
   }
 };
-// const updateImageById = async (req, res, next) => {
-//   try {
-//     const userId = req.params.id;
-//     const image = `/images/users/${req.file ? req.file.filename : ""}`;
-//     const user = await User.findById({ _id: userId });
-//     await user.updateOne({ image: image });
 
-//     return successResponse(res, {
-//       statusCode: 200,
-//     });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+const handleBanUser = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isBanned: true },
+      { new: true }
+    ).select("-password");
+    if (!user) {
+      throw createError(404, "User with this Id does not exist");
+    }
+    return successResponse(res, {
+      statusCode: 200,
+      message: "User was banned successfully.",
+      payload: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const handleUnbanUser = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isBanned: false },
+      { new: true }
+    ).select("-password");
+    if (!user) {
+      throw createError(404, "User with this Id does not exist");
+    }
+    return successResponse(res, {
+      statusCode: 200,
+      message: "User was unbanned successfully.",
+      payload: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const handleUpdatePasswords = async (req, res, next) => {
+  try {
+    const { oldPassword, newPassword, confirmPassword, email } = req.body;
+    // Check is empty old Pass
+    if (oldPassword === "") {
+      throw createError(400, "Old password field cannot be empty");
+    }
+
+    // check is newpasss empty
+    if (newPassword === "") {
+      throw createError(400, "New password field cannot be empty");
+    }
+
+    // check is empty email
+    if (email === "") {
+      throw createError(400, "Email field cannot be empty");
+    }
+    // Check new pass and confirm pass
+    if (newPassword !== confirmPassword) {
+      throw createError(
+        400,
+        "New password and Confirm password does not match"
+      );
+    }
+    // const userId = req.params.id;
+    const users = await User.findOne({ email: email });
+    // const user = await User.findById({ _id: userId });
+
+    // compare the password
+    const isPassword = await bcrypt.compare(oldPassword, users.password);
+    if (!isPassword) {
+      throw createError(400, "Old password is incorrect");
+    }
+
+    // Update the user's password in the database
+    users.password = newPassword;
+    await users.save();
+
+    return successResponse(res, {
+      statusCode: 200,
+      message: "User was updated successfully.",
+      payload: { users },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const handleForgetPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const token = await forgetPasswordByEmail(email);
+    console.log(token);
+
+    return successResponse(res, {
+      statusCode: 200,
+      message: `Please go to your ${email} for completing your reset password process.`,
+      payload: token,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const handleResetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+    const updatedUser = await resetPassword(token, password);
+    return successResponse(res, {
+      statusCode: 200,
+      message: "User account password reset successfully",
+      payload: { updatedUser },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   getUsers,
@@ -255,4 +350,9 @@ module.exports = {
   processRegister,
   activateUserAccount,
   updateUserById,
+  handleBanUser,
+  handleUnbanUser,
+  handleUpdatePasswords,
+  handleForgetPassword,
+  handleResetPassword,
 };

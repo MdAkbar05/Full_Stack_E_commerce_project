@@ -7,6 +7,9 @@ import VerifyUser from "../pages/Register/VerifyUser";
 import Dashboard from "../pages/Dashboard";
 import Header from "../Layouts/Header";
 import Login from "../pages/Login";
+import Profile from "../pages/UserProfile/Profile";
+import UpdatePass from "../components/change-pass/UpdatePass";
+import ForgetPassword from "../pages/Login/ForgetPassword";
 
 const Index = () => {
   // set your conditional Route or Private Routes
@@ -20,6 +23,9 @@ const Index = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verify-user" element={<VerifyUser />} />
+        <Route path="/profile-user" element={<Profile />} />
+        <Route path="/change-pass" element={<UpdatePass />} />
+        <Route path="/forget-pass" element={<ForgetPassword />} />
 
         <Route path="*" element={<Error />} />
       </Routes>
