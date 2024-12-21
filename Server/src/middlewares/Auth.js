@@ -1,10 +1,11 @@
 const createError = require("http-errors");
 const jwt = require("jsonwebtoken");
-const { jwtAccessKey } = require("../secret");
+const { jwtAccessKey, jwtRefreshToken } = require("../secret");
 
 const isLoggedIn = async (req, res, next) => {
   try {
-    const token = req.cookies.accessToken;
+    const token = req.cookies.refreshToken;
+
     if (!token) {
       throw createError(
         401,
@@ -12,7 +13,7 @@ const isLoggedIn = async (req, res, next) => {
       );
     }
 
-    const decoded = jwt.verify(token, jwtAccessKey);
+    const decoded = jwt.verify(token, jwtRefreshToken);
     if (!decoded) {
       throw createError(402, "Invalid Token. Please login.");
     }
@@ -48,7 +49,6 @@ const isAdmin = async (req, res, next) => {
     if (!users.isAdmin) {
       throw createError(403, "You are not authorized to access this route.");
     }
-
     next();
   } catch (error) {
     return next(error);

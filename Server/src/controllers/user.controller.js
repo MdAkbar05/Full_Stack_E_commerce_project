@@ -4,7 +4,7 @@ const createError = require("http-errors");
 const User = require("../models/users.model");
 const { successResponse } = require("./responseController");
 const { findWithId } = require("../services/findItem");
-const { deleteImage } = require("../services/deleteImage");
+const { deleteUserImage } = require("../services/deleteImage");
 const { createJSONWebToken } = require("../services/jsonWebToken");
 const {
   jwtActivationKey,
@@ -27,7 +27,6 @@ const getUsers = async (req, res, next) => {
 
     const searchRegEx = new RegExp(".*" + search + ".*", "i");
     const filter = {
-      isAdmin: { $ne: true },
       $or: [
         { name: { $regex: searchRegEx } },
         { email: { $regex: searchRegEx } },
@@ -36,10 +35,10 @@ const getUsers = async (req, res, next) => {
     };
     // For not return Password
     const options = { password: 0 };
+
     const users = await User.find(filter, options)
       .limit(limit)
       .skip((page - 1) * limit);
-
     const count = await User.find(filter).countDocuments();
     if (!users || users.length === 0) throw createError(404, "No user found");
 
@@ -47,7 +46,7 @@ const getUsers = async (req, res, next) => {
       statusCode: 200,
       message: "Users were return successfully.",
       payload: {
-        users: users,
+        users,
         pagination: {
           totalPages: Math.ceil(count / limit),
           currentPage: page,
@@ -80,9 +79,11 @@ const getUserById = async (req, res, next) => {
 const processRegister = async (req, res, next) => {
   try {
     const { name, email, password, address, phone } = req.body;
-    const imgPath = req.file ? req.file.path : "default.png";
-    const imageName = path.basename(imgPath);
-    const image = `/images/users/${imageName}`;
+    const imgPath = req.file ? req.file.filename : "default.png";
+
+    console.log(req.file);
+
+    const image = `/images/users/${imgPath}`;
 
     //user exist check
     const userExists = await User.exists({ email: email });
@@ -92,34 +93,58 @@ const processRegister = async (req, res, next) => {
         "User with this email already exists. Please sign with new email."
       );
     }
+
+    // Function to generate a 6-digit OTP
+    const generateOTP = () => {
+      return Math.floor(100000 + Math.random() * 900000).toString(); // Generates a 6-digit OTP
+    };
+    const otp = generateOTP();
+
     //create jwt
-    const token = createJSONWebToken(
-      { name, email, password, address, phone, image },
-      jwtActivationKey,
-      "10m"
-    );
+    const token = {
+      user: {
+        name,
+        email,
+        password,
+        address,
+        phone,
+        image,
+      },
+      OTP: otp,
+    };
+    console.log(token);
 
     //prepare email
     const emailData = {
       email,
-      subject: "Account activation email",
+      subject: "Your OTP Code for Account Activation",
       html: `
-        <h2> Hello ${name} !</h2>
-        <p > Please click here to <a href="${clientURL}/api/users/verify/${token}" target="_blank"> activate your account</a>  </p>
-        `,
+      <h2>Hello ${name}!</h2>
+      <p>Your OTP code for account activation is: <strong>${otp}</strong></p>
+      <p>This code is valid for the next 10 minutes.</p>
+    `,
     };
-    //send email with nodemailer
-    // try {
-    //   await emailWithNodeMailer(emailData);
-    // } catch (emailError) {
-    //   next(createError(500, "Failed to send verification"));
-    // }
+    // send email with nodemailer
+    try {
+      await emailWithNodeMailer(emailData);
+    } catch (emailError) {
+      next(createError(500, "Failed to send verification"));
+    }
+
+    const userToken = createJSONWebToken(token, jwtActivationKey, "10m");
+
+    // Set the OTP token in a cookie
+    res.cookie("userToken", userToken, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 10 * 60 * 1000,
+    });
+
     return successResponse(res, {
       statusCode: 200,
       message: `Please go to your ${email} for completing your registration process.`,
-      payload: { token },
+      payload: token,
     });
-    console.log(token);
   } catch (error) {
     next(error);
   }
@@ -127,38 +152,33 @@ const processRegister = async (req, res, next) => {
 
 const activateUserAccount = async (req, res, next) => {
   try {
-    const token = req.params.token;
-    if (!token) {
-      res.status(401).json({ success: false, message: "Token not found" });
+    const otp = req.query.otp;
+    console.log(otp);
+    // Check if the OTP sent in the request matches the one stored in the cookie
+    const userToken = req.cookies.userToken;
+    if (!userToken) {
+      res.status(404).json({ message: "OTP has expired" });
     }
-    const decoded = jwt.verify(token, jwtActivationKey);
-    if (!decoded) {
-      res
-        .status(401)
-        .json({ success: false, message: "Unable to verify user" });
+    const { user, OTP } = jwt.verify(userToken, jwtActivationKey);
+
+    // Check if the OTP matches and hasn't expired
+    if (OTP !== otp) {
+      return res.status(401).json({ message: "Did not match OTP code" });
     }
-    const userExists = await User.exists({ email: decoded.email });
-    if (userExists) {
-      res.status(409).json({
-        success: false,
-        message:
-          "User with this email already exists. Please sign with new email.",
-      });
-    }
-    const user = await User.create(decoded);
+
+    // If OTP is valid, activate the user
+    const newUser = new User(user);
+    await newUser.save();
+    console.log("reached");
+    res.clearCookie("userToken");
+
     return successResponse(res, {
-      statusCode: 201,
-      message: "User was registered successfully",
-      payload: { user },
+      statusCode: 200,
+      message: "User verified and account activated successfully.",
+      payload: { newUser },
     });
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      res.status(401).json({ success: false, message: "Token has expired" });
-    } else if (error.name === "JsonWebTokenError") {
-      res.status(401).json({ success: false, message: "Invalid Token" });
-    } else {
-      throw error;
-    }
+    next(error);
   }
 };
 
@@ -166,13 +186,14 @@ const delteUserById = async (req, res, next) => {
   try {
     const id = req.params.id;
     const options = { password: 0 };
-    const user = await findWithId(User, id, options);
+    // const user = await findWithId(User, id, options);
 
+    const user = await User.findByIdAndDelete({ _id: id, isAdmin: false });
     const userImagePath = user.image;
-
-    deleteImage(userImagePath);
-
-    await User.findByIdAndDelete({ _id: id, isAdmin: false });
+    deleteUserImage(userImagePath);
+    if (!user) {
+      throw createError(404, "User not found");
+    }
 
     return successResponse(res, {
       statusCode: 201,
@@ -187,20 +208,32 @@ const delteUserById = async (req, res, next) => {
 const updateUserById = async (req, res, next) => {
   try {
     const UserId = req.params.id;
+    const user = await User.findOne({ _id: UserId });
     const updateOption = { new: true, contex: "query" };
-
     let updates = {};
 
-    if (req.body.email) {
-      throw createError(400, "Email can not be update");
-    }
-
-    const allowedField = ["name", "password", "address", "phone"];
+    const allowedField = ["name", "address", "phone"];
 
     for (const key in req.body) {
       if (allowedField.includes(key)) {
         updates[key] = req.body[key];
       }
+    }
+
+    const img = req.file ? req.file : null;
+    if (img) {
+      if (img.size > 1024 * 1024 * 2) {
+        throw createError(400, "Product image size should not exceed 2MB.");
+      }
+    }
+
+    const originalname = req.file ? req.file.originalname : null;
+
+    const image =
+      !originalname === null ? `/images/users/${originalname}` : null;
+    if (image) {
+      deleteUserImage(user.image);
+      updates.image = image;
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -224,19 +257,21 @@ const updateUserById = async (req, res, next) => {
 
 const handleBanUser = async (req, res, next) => {
   try {
-    const userId = req.params.id;
-    const user = await User.findByIdAndUpdate(
-      userId,
+    const email = req.body.email;
+    console.log(email);
+    const user = await User.findOneAndUpdate(
+      { email },
       { isBanned: true },
       { new: true }
     ).select("-password");
     if (!user) {
       throw createError(404, "User with this Id does not exist");
     }
+
     return successResponse(res, {
       statusCode: 200,
       message: "User was banned successfully.",
-      payload: { user },
+      payload: user,
     });
   } catch (error) {
     next(error);
@@ -245,9 +280,9 @@ const handleBanUser = async (req, res, next) => {
 
 const handleUnbanUser = async (req, res, next) => {
   try {
-    const userId = req.params.id;
-    const user = await User.findByIdAndUpdate(
-      userId,
+    const email = req.body.email;
+    const user = await User.findOneAndUpdate(
+      { email },
       { isBanned: false },
       { new: true }
     ).select("-password");
@@ -257,7 +292,7 @@ const handleUnbanUser = async (req, res, next) => {
     return successResponse(res, {
       statusCode: 200,
       message: "User was unbanned successfully.",
-      payload: { user },
+      payload: user,
     });
   } catch (error) {
     next(error);
@@ -267,6 +302,7 @@ const handleUnbanUser = async (req, res, next) => {
 const handleUpdatePasswords = async (req, res, next) => {
   try {
     const { oldPassword, newPassword, confirmPassword, email } = req.body;
+    console.log(req.body);
     // Check is empty old Pass
     if (oldPassword === "") {
       throw createError(400, "Old password field cannot be empty");
@@ -333,10 +369,13 @@ const handleResetPassword = async (req, res, next) => {
   try {
     const { token, password } = req.body;
     const updatedUser = await resetPassword(token, password);
+    if (!updatedUser) {
+      throw createError(404, "User with this token does not exist");
+    }
     return successResponse(res, {
       statusCode: 200,
       message: "User account password reset successfully",
-      payload: { updatedUser },
+      payload: updatedUser,
     });
   } catch (error) {
     next(error);

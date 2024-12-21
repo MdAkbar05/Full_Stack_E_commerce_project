@@ -33,28 +33,18 @@ userRouter.post(
   runValidation,
   processRegister
 );
-userRouter.post("/verify/:token", isLoggedOut, activateUserAccount);
+userRouter.get("/verify/", isLoggedOut, activateUserAccount);
 userRouter.delete("/:id([0-9a-fA-F]{24})", delteUserById);
-userRouter.put("/reset-password/", handleResetPassword);
-userRouter.put("/:id([0-9a-fA-F]{24})", updateUserById);
 userRouter.put(
-  "/ban-user/:id([0-9a-fA-F]{24})",
-  isLoggedIn,
-  isAdmin,
-  handleBanUser
+  "/:id([0-9a-fA-F]{24})",
+  userProfileUpload.single("image"),
+  updateUserById
 );
-userRouter.put(
-  "/unban-user/:id([0-9a-fA-F]{24})",
-  isLoggedIn,
-  isAdmin,
-  handleUnbanUser
-);
-userRouter.put(
-  "/update-password/:id([0-9a-fA-F]{24})",
-  isLoggedIn,
-  handleUpdatePasswords
-);
+userRouter.put("/ban-user/", isLoggedIn, isAdmin, handleBanUser);
+userRouter.put("/unban-user/", isLoggedIn, isAdmin, handleUnbanUser);
+userRouter.put("/update-password/", handleUpdatePasswords);
 
 userRouter.post("/forget-password/", isLoggedOut, handleForgetPassword);
+userRouter.put("/reset-password/", handleResetPassword);
 
 module.exports = userRouter;

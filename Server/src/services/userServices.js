@@ -18,7 +18,6 @@ const forgetPasswordByEmail = async (email) => {
   //create jwt
   const token = createJSONWebToken({ email }, jwt_reset_pass_key, "10m");
   return token;
-  console.log(token);
   //prepare email
   //   const emailData = {
   //     email,

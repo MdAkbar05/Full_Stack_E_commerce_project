@@ -12,6 +12,8 @@ const { errorResponse } = require("./controllers/responseController");
 const authRouter = require("./routes/authRouter");
 const categoryRouter = require("./routes/categoryRouter");
 const productsRouter = require("./routes/productsRouter");
+const orderRouter = require("./routes/orderRouter");
+const reviewRouter = require("./routes/reviewRouter");
 
 const app = express();
 app.use(xssClean());
@@ -24,6 +26,10 @@ app.use(
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   })
 );
+app.use((req, res, next) => {
+  console.log(`Received request: ${req.method} ${req.originalUrl}`);
+  next();
+});
 app.use(cookieParser());
 
 app.use("/api/users/", userRouter);
@@ -31,6 +37,8 @@ app.use("/api/auth/", authRouter);
 app.use("/api/seed/", seedRouter);
 app.use("/api/categories/", categoryRouter);
 app.use("/api/products/", productsRouter);
+app.use("/api/reviews/", reviewRouter);
+app.use("/api/orders/", orderRouter);
 
 app.get("/", (req, res) => {
   res.status(200).json({

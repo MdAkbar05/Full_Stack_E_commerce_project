@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const createError = require("http-errors");
+const { OAuth2Client } = require("google-auth-library");
 const User = require("../models/users.model");
 const { successResponse } = require("./responseController");
 const { createJSONWebToken } = require("../services/jsonWebToken");
@@ -53,17 +54,59 @@ const handleLogin = async (req, res, next) => {
       sameSite: "none",
     });
 
-    // delete password field
-    const withoutPass = users.toObject();
-    delete withoutPass.password;
     // Success response
     return successResponse(res, {
       statusCode: 200,
       message: "User loggedin successfully",
-      payload: { withoutPass },
+      payload: { users },
     });
   } catch (error) {
     next(error);
+  }
+};
+const clientId =
+  "102107721923-16r7gvmjvq0rorbci67nnjtlishjm298.apps.googleusercontent.com";
+const client = new OAuth2Client(clientId);
+const handleGoogleLogin = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: clientId,
+    });
+
+    const { name, email, picture } = ticket.getPayload();
+
+    // Check if user exists or create a new user
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = new User({
+        name,
+        email,
+        image: picture,
+      });
+      await user.save();
+    }
+
+    // Generate JWT or any other authentication token
+    const authToken = createJSONWebToken(
+      { userId: user._id, email },
+      "YOUR_JWT_SECRET",
+      "1d"
+    );
+
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+      },
+      token: authToken,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to authenticate with Google" });
   }
 };
 
@@ -137,4 +180,5 @@ module.exports = {
   handleLogout,
   handleRefreshToken,
   handleProtected,
+  handleGoogleLogin,
 };
