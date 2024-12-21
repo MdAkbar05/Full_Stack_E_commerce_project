@@ -1,3 +1,36 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+
+body {
+  background-color: #fffbe6;
+}
+.logo path {
+  fill: white;
+}
+.flexCenter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex1 {
+  flex: 0.5;
+}
+.flex2 {
+  flex: 2;
+}
+.flex3 {
+  flex: 3;
+}
+.flex4 {
+  flex: 4;
+}
+
+.spinnerCircle {
+  @apply border-gray-300 size-10 animate-spin rounded-full border-8 border-t-blue-600;
+}
+
+.slick-dots {
+  margin-bottom: -200px;
+}

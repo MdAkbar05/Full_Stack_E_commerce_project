@@ -1,7 +1,7 @@
 import React from "react";
 
-const index = () => {
-  return <div>Abouts</div>;
+const About = () => {
+  return <div className="container mx-auto">Abouts</div>;
 };
 
-export default index;
+export default About;

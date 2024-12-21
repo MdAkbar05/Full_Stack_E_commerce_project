@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogPanel } from "@headlessui/react";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { FaShoppingCart, FaHeart, FaUser, FaLockOpen } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
-import { useContext } from "react";
-import AuthContext from "../../Helpers/UsersContext";
-import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import {
+  Bars3Icon,
+  XMarkIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
+import { FaShoppingCart, FaHeart, FaUser } from "react-icons/fa";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { handleLogout } from "../../features/authSlice";
+import GoogleLogout from "../../components/Login-method/GoogleLogout";
+import TopbarInfo from "./topbar";
+import { searchProducts } from "../../features/productSlice";
+import BottomBar from "./bottombar";
+import Logo from "./logo.svg";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -17,222 +28,249 @@ const navigation = [
 ];
 
 export default function Header() {
-  const notify = (msg) => toast(msg);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchBarVisible, setSearchBarVisible] = useState(false);
+  const { totalCount } = useSelector((state) => state.cartReducer);
+  const { totalFavCount } = useSelector((state) => state.favouriteReducer);
+  const [profile, setProfile] = useState({});
+  const { authUser } = useSelector((state) => state.authReducer);
+  // import params
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const { userName, user, setUser, img, setUserName, setImg } =
-    useContext(AuthContext);
+  useEffect(() => {
+    setProfile(JSON.parse(localStorage.getItem("user")));
+  }, [authUser, navigate]);
 
-  // Handle logout action
-  const handleLogout = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/logout",
-        {},
-        {
-          withCredentials: true, // Ensure cookies are sent
-        }
-      );
-      // Handle Success Response 200
-      if (response.status === 200) {
-        // Clear user state from localStorage
-        const userData = {
-          isUser: false,
-          userName: null,
-          img: null,
-        };
-        localStorage.setItem("user", JSON.stringify(userData));
+  const Logout = () => {
+    dispatch(handleLogout()).then(() => {
+      setProfile(JSON.parse(localStorage.getItem("user")));
+      navigate("/login");
+    });
+  };
 
-        localStorage.removeItem("user");
-
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (storedUser) {
-          const { isUser, userName, img } = storedUser;
-          setUser(isUser);
-          setUserName(userName);
-          setImg(img);
-        }
-        notify(`${userName} logout successful`);
-        navigate("/login");
-      }
-      // Handle 401 error
-      if (response.status === 401) {
-        notify(`Please Login first`);
-        navigate("/login");
-      }
-    } catch (error) {
-      console.log(error.message);
+  const handleSearchChange = (e) => {
+    const query = e.target.value.trim();
+    if (query === "") {
+      return;
     }
+    // Dispatch the search action
+    dispatch(searchProducts(query));
+
+    // Navigate to the search results page (you can use a dedicated search results page)
+    navigate(`/search?query=${query}`);
   };
 
   return (
-    <nav className="bg-white shadow-lg">
-      <ToastContainer />
+    <nav className="bg-primary shadow-lg sticky top-0 z-50">
+      <TopbarInfo />
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Left side: Brand and Logo */}
+          {/* Left side: Brand */}
           <div className="flex items-center">
-            <img
-              src="/images/users/logo.png"
-              alt="Logo"
-              className="h-8 w-8 mr-2"
-            />
-            <Link to="/" className="text-xl font-bold text-red-400">
-              Sagor Departmental
+            <Link
+              to="/"
+              className="text-xl font-bold text-white flex items-center"
+            >
+              <img src={Logo} alt="Logo" className="h-8 w-8 mr-2" />
+              <span className="sm:hidden md:block">Sagor Departmental</span>
+              <span className="sm:block md:hidden">S.D Shop</span>
             </Link>
           </div>
 
-          {/* Middle: Search Bar */}
-          <div className="flex-1 mx-4 hidden md:block px-4">
-            <div className="relative">
-              <input
-                type="text"
-                className="w-full pl-4 pr-8 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-gray-200"
-                placeholder="Search..."
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <svg
-                  className="h-5 w-5 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M8 16l-4-4m0 0l4-4m-4 4h14M5 12h14"
-                  ></path>
-                </svg>
-              </div>
-            </div>
+          {/* Center: Search Bar */}
+          <div
+            className={`flex-1 mx-4 px-4 sm:mx-0 ${
+              searchBarVisible ? "block" : "hidden"
+            } sm:block`}
+          >
+            <input
+              type="text"
+              placeholder="Search..."
+              onChange={handleSearchChange}
+              className="w-full border border-gray-300 rounded-lg p-2"
+            />
           </div>
+          <button
+            type="button"
+            className="md:hidden sm:block ml-4 text-background hover:text-secondary"
+            onClick={() => setSearchBarVisible(!searchBarVisible)}
+          >
+            <MagnifyingGlassIcon className="h-6 w-6" aria-hidden="true" />
+          </button>
 
-          {/* Right side: User Actions */}
+          {/* Right side: User Actions and Mobile Menu Button */}
           <div className="flex items-center">
-            {user ? (
-              <>
-                {/* Cart Link / */}
-                <Link
-                  to="/cart"
-                  className="relative ml-4 text-gray-600 hover:text-gray-800"
-                >
-                  <FaShoppingCart className="text-xl" />
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
-                    3
-                  </span>
-                </Link>
-                {/* Favorite Link  */}
-                <Link
-                  to="/favorites"
-                  className="ml-4 text-gray-600 hover:text-gray-800"
-                >
-                  <FaHeart className="text-xl" />
-                </Link>
-                {/* User Link  */}
-                <Link
-                  to="/profile-user"
-                  className="ml-4 text-gray-600 hover:text-gray-800"
-                >
-                  <img
-                    src={img}
-                    alt={userName}
-                    className="w-8 h-8 rounded-full mx-auto border-2"
-                  />
-                  {userName}
-                </Link>
-                <Link
-                  onClick={() => {
-                    setUser(false);
-                    handleLogout();
-                  }}
-                  to="/"
-                  className="ml-4 text-gray-600 hover:text-gray-800"
-                >
-                  <FaLockOpen className="text-xl text-red-600" />
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/register"
-                  className=" border-yellow-400 ml-4 rounded-xl px-2 py-1 text-gray-600  hover:text-red-400 hover:bg-red-200"
-                >
-                  Register
-                </Link>
-                <Link
-                  to="/login"
-                  className="ml-4 border-1 text-white bg-red-400 rounded-xl px-2 py-1 hover:text-red-400 hover:bg-red-200 "
-                >
-                  Login
-                </Link>
-              </>
-            )}
+            <div className="sm:hidden md:flex items-center">
+              <Link
+                to="/cart"
+                className="relative ml-4 text-background hover:text-secondary"
+              >
+                <FaShoppingCart className="text-xl" />
+                <span className="absolute top-[-8px] left-3 inline-flex items-center justify-center px-1 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                  {totalCount}
+                </span>
+              </Link>
+              <Link
+                to="/favourite"
+                className="relative ml-4 text-background hover:text-secondary"
+              >
+                <FaHeart className="text-xl" />
+                <span className="absolute top-[-8px] left-3 inline-flex items-center justify-center px-1 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                  {totalFavCount}
+                </span>
+              </Link>
+              {profile && profile.isUser ? (
+                <>
+                  {profile.admin && (
+                    <Link
+                      to="/dashboard/dash"
+                      className="relative ml-4 text-background hover:text-secondary"
+                    >
+                      Dashboard
+                    </Link>
+                  )}
+                  <Link
+                    to="/profile-user"
+                    className="ml-4 text-background hover:text-secondary flex items-center"
+                  >
+                    <img
+                      src={profile.img}
+                      alt={profile.userName}
+                      className="w-10 h-10 rounded-full mx-auto border-2 border-background p-0.5"
+                    />
+                  </Link>
+                  <Link
+                    onClick={Logout}
+                    to="/"
+                    className="ml-4 text-background hover:text-secondary"
+                  >
+                    <GoogleLogout />
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/register"
+                    className="border-yellow-400 ml-4 rounded-xl px-2 py-1 text-background hover:text-secondary hover:bg-background"
+                  >
+                    Register
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="ml-4 border-1 text-primary bg-background hover:text-background rounded-xl px-2 py-1  hover:bg-secondary"
+                  >
+                    Login
+                  </Link>
+                </>
+              )}
+            </div>
             <button
               type="button"
-              className="ml-4 text-gray-600 hover:text-gray-800 lg:hidden"
-              onClick={() => setMobileMenuOpen(true)}
+              className="ml-4 text-background hover:text-gray-800 sm:flex md:hidden"
+              onClick={() => {
+                setMobileMenuOpen(!mobileMenuOpen);
+                console.log(mobileMenuOpen);
+              }}
             >
               <Bars3Icon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Menu */}
-        <Dialog
-          as="div"
-          className="lg:hidden"
-          open={mobileMenuOpen}
-          onClose={setMobileMenuOpen}
-        >
-          <div className="fixed inset-0 z-50" />
-          <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
-            <div className="flex items-center justify-between">
-              <Link to="/" className="-m-1.5 p-1.5">
-                <span className="sr-only">Sagor Departmental</span>
-                <img
-                  className="h-8 w-auto"
-                  src="/images/users/logo.png"
-                  alt="Logo"
-                />
-              </Link>
-              <button
-                type="button"
-                className="-m-2.5 rounded-md p-2.5 text-gray-700"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <span className="sr-only">Close menu</span>
-                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
-            </div>
-            <div className="mt-6 flow-root">
-              <div className="-my-6 divide-y divide-gray-500/10">
-                <div className="space-y-2 py-6">
-                  {navigation.map((item) => (
+      {/* Mobile Menu */}
+      <Dialog
+        as="div"
+        className=""
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)} // Ensure this properly closes the dialog
+      >
+        <div className="fixed inset-0 z-50" />
+        <Dialog.Panel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto text-background bg-secondary px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+          <div className="flex items-center justify-between">
+            <span className="text-background text-xl font-semibold">
+              Sagor Departmental
+            </span>
+            <Link to="/" className="-m-1.5 p-1.5">
+              <img src={Logo} alt="Logo" className="h-8 w-8 mr-2" />
+            </Link>
+            <button
+              type="button"
+              className="-m-2.5 rounded-md p-2.5 text-background"
+              onClick={() => setMobileMenuOpen(false)} // Close when clicked
+            >
+              <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+            </button>
+          </div>
+          <div className="mt-6 flow-root">
+            <div className="-my-6 divide-y divide-gray-500/10">
+              <div className="space-y-2 py-6">
+                <Link
+                  to="/profile-user"
+                  className="-mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-background hover:bg-gray-400/10"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Profile
+                </Link>
+                <Link
+                  to="/cart"
+                  className="-mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-background hover:bg-gray-400/10"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Cart ({totalCount})
+                </Link>
+                <Link
+                  to="/favourite"
+                  className="-mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-background hover:bg-gray-400/10"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Favourite ({totalFavCount})
+                </Link>
+
+                {profile && profile.isUser ? (
+                  <>
+                    {profile.admin && (
+                      <Link
+                        to="/dashboard/dash"
+                        className="-mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-background hover:bg-gray-400/10"
+                      >
+                        Dashboard
+                      </Link>
+                    )}
+
                     <Link
-                      key={item.name}
-                      to={item.href}
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                      onClick={Logout}
+                      to="/"
+                      className="-mx-3  rounded-lg py-2 px-3 text-base font-semibold leading-7 text-background hover:bg-gray-400/10 flex"
                     >
-                      {item.name}
+                      Logout <GoogleLogout />
                     </Link>
-                  ))}
-                </div>
-                <div className="py-6">
-                  <Link
-                    to={user ? "/user" : "/login"}
-                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                  >
-                    {user ? "My Account" : "Log in"}
-                  </Link>
-                </div>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/register"
+                      className="border-yellow-400 ml-4 rounded-xl px-2 py-1 text-background hover:text-secondary hover:bg-background"
+                    >
+                      Register
+                    </Link>
+                    <Link
+                      to="/login"
+                      className="ml-4 border-1 text-primary bg-background hover:text-background rounded-xl px-2 py-1  hover:bg-secondary"
+                    >
+                      Login
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
-          </DialogPanel>
-        </Dialog>
-      </div>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
+
+      <BottomBar />
     </nav>
   );
 }

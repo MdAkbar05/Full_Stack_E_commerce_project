@@ -1,15 +1,19 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import AuthContext from "../../Helpers/UsersContext";
-// reactIcon
+import { toast } from "react-toastify";
 import { FaEyeSlash, FaRegEye } from "react-icons/fa";
+import { useDispatch } from "react-redux";
+import { handleLogin } from "../../features/authSlice";
+import GoogleLogin from "../../components/Login-method/GoogleLogin";
+
 const Login = () => {
-  const [loading, setloading] = useState(false);
+  const notify = (msg) => toast(msg);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const { setUser, setUserName, setImg, setEmail, setAddress, setID } =
-    useContext(AuthContext);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -17,7 +21,6 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.currentTarget;
-
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
@@ -25,56 +28,23 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    setloading(true);
+    setLoading(true);
     e.preventDefault();
     const data = new FormData();
     data.append("email", formData.email);
     data.append("password", formData.password);
 
-    try {
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/login",
-        data,
-        {
-          headers: {
-            "Content-Type": "multipart/formData",
-            "Content-Type": "application/json",
-          },
-          withCredentials: true, // Ensure cookies are sent
-        }
-      );
-      console.log(response);
-      if (response.status === 200) {
-        // Save user state to localStorage
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            isUser: true,
-            userName: response.data.payload.users.name,
-            img: response.data.payload.users.image,
-            email: response.data.payload.users.email,
-            address: response.data.payload.users.address,
-            id: response.data.payload.users._id,
-          })
-        );
-        const profile = JSON.parse(localStorage.getItem("user"));
-        setUser(profile.isUser);
-        setUserName(profile.userName);
-        setImg(profile.img);
-        setEmail(profile.email);
-        setAddress(profile.address);
-        setloading(false);
-        setID(profile.id);
+    dispatch(handleLogin(data)).then((res) => {
+      if (res.type === "auth/handleLogin/rejected") {
+        notify(res.payload);
+        setMessage(res.payload);
+        setLoading(false);
+      } else if (res.type === "auth/handleLogin/fulfilled") {
         navigate("/");
+        notify("Logged in successfully");
+        setLoading(false);
       }
-    } catch (error) {
-      console.error(
-        "There was a problem with the registration request:",
-        error.response.data.message
-      );
-      setloading(false);
-      alert(error.response.data.message);
-    }
+    });
   };
 
   const togglePasswordVisibility = () => {
@@ -82,27 +52,27 @@ const Login = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10">
-      <p className="text-center text-2xl px-2 py-2 text-blue-700">
-        Login Your Accounts
-      </p>
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="max-w-lg mx-auto mt-16 p-6 bg-white shadow-lg rounded-lg my-6">
+      <h2 className="text-3xl font-bold text-center text-red-500 mb-8 ">
+        Sign In to Your Account
+      </h2>
+      <form onSubmit={handleSubmit} className="space-y-6 ">
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Email
+          <label className="block text-sm font-semibold text-gray-600">
+            Email Address
           </label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             required
           />
         </div>
 
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-semibold text-gray-600">
             Password
           </label>
           <input
@@ -110,21 +80,23 @@ const Login = () => {
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             required
           />
           <span
-            className="absolute right-2 top-9 cursor-pointer"
+            className="absolute right-3 top-10 cursor-pointer text-gray-600"
             onClick={togglePasswordVisibility}
           >
             {isPasswordVisible ? <FaEyeSlash /> : <FaRegEye />}
           </span>
         </div>
 
-        <div className="flex items-center justify-between">
+        {message && <p className="text-red-500 text-sm">{message}</p>}
+
+        <div className="flex justify-between items-center">
           <Link
             to="/forget-pass"
-            className="text-sm font-semibold text-blue-700 hover:text-blue-900"
+            className="text-sm font-semibold text-red-700 hover:text-blue-900"
           >
             Forgot Password?
           </Link>
@@ -133,21 +105,24 @@ const Login = () => {
         <div>
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            {loading ? "Loading..." : "Login"}
+            {loading ? "Loading..." : "Sign In"}
           </button>
         </div>
       </form>
-      <div className="mt-4">
+
+      <div className="mt-6">
         <button
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black bg-slate-300 hover:bg-slate-500-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          onClick={() => {
-            navigate("/register");
-          }}
+          className="w-full py-3 px-4 border border-gray-300 rounded-md shadow-sm text-black bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          onClick={() => navigate("/register")}
         >
-          Create New Account?
+          Don't have an account? Register
         </button>
+      </div>
+
+      <div className="mt-8 flex justify-center">
+        <GoogleLogin />
       </div>
     </div>
   );

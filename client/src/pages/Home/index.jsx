@@ -1,16 +1,29 @@
-import React, { useContext, useEffect, useState } from "react";
-import AuthContext from "../../Helpers/UsersContext";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-const Home = () => {
-  // const { isLoading, isError, data } = useFetch(
-  //   "http://localhost:3000/api/users"
-  // );
-  // const users = data;
+import React from "react";
 
+import "react-toastify/dist/ReactToastify.css";
+
+import HeroSection from "../../components/hero-section";
+import Features from "../../components/features";
+import { useDispatch } from "react-redux";
+import Companys from "../Companys";
+import Maps from "../../components/maps/Maps";
+import TestimonialSlider from "../Testimonials";
+import Categories from "../Popular-Categories";
+import ContactInfo from "../Contacts/ContactInfo";
+import ContactForm from "../Contacts/ContactForm";
+import BusinessHours from "../../components/BusinessHour";
+const Home = () => {
   return (
-    <div>
-      <div className="text-lg">Welcome to Home</div>
+    <div className="container mx-auto">
+      <HeroSection />
+      <Features />
+      <Companys />
+      <Categories />
+      <TestimonialSlider />
+      <BusinessHours />
+      <ContactInfo />
+      <Maps />
+      <ContactForm />
     </div>
   );
 };

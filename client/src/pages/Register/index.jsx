@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useDispatch } from "react-redux";
+import { handleRegister } from "../../features/authSlice";
 
 const Register = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Loading state
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -12,6 +16,7 @@ const Register = () => {
     phone: "",
     image: null,
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, files } = e.currentTarget;
@@ -30,151 +35,207 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const data = new FormData();
-    data.append("name", formData.name);
-    data.append("email", formData.email);
-    data.append("password", formData.password);
-    data.append("address", formData.address);
-    data.append("phone", formData.phone);
-    data.append("image", formData.image);
-    console.log(data);
-
+    setLoading(true); // Set loading to true when submission starts
     try {
-      console.log(data);
-      const response = await axios.post(
-        "http://localhost:3000/api/users/process-register",
-        data,
-        {
-          headers: {
-            "Content-Type": "multipart/formData",
-            "Content-Type": "application/json",
-          },
+      dispatch(handleRegister(formData)).then((res) => {
+        if (res.payload.success === false) {
+          setError(res.payload.message);
+        } else {
+          navigate("/verify-user");
         }
-      );
-
-      console.log(response.data);
-      alert(response.data.payload.token);
-      // Handle the response, e.g., navigate to another page or show a success message
-      navigate("/verify-user"); // Redirect to the users page after successful registration
+        setLoading(false); // Set loading to false after submission completes
+      });
     } catch (error) {
       console.error(
         "There was a problem with the registration request:",
-        error.response.data.message
+        error
       );
-      alert(error.response.data.message);
+      setLoading(false); // Set loading to false on error
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10">
-      <p className="text-center text-2xl px-2 py-2 text-blue-700">
-        Register Your Accounts
+    <div className="max-w-lg mx-auto mt-10 p-8 bg-gray-50 shadow-lg rounded-lg">
+      <p className="text-center text-3xl font-bold text-red-500 mb-8">
+        Create an Account
       </p>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Name
-          </label>
+        {/* Name Field */}
+        <div className="relative">
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="peer mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+            placeholder=" "
             required
           />
+          <label className="absolute top-0 left-2 text-gray-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3 peer-focus:top-0 peer-focus:left-2 peer-focus:text-xs">
+            Name
+          </label>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Email
-          </label>
+        {/* Email Field */}
+        <div className="relative">
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="peer mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+            placeholder=" "
             required
           />
+          <label className="absolute top-0 left-2 text-gray-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3 peer-focus:top-0 peer-focus:left-2 peer-focus:text-xs">
+            Email
+          </label>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
+        {/* Password Field */}
+        <div className="relative">
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="peer mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+            placeholder=" "
             required
           />
+          <label className="absolute top-0 left-2 text-gray-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3 peer-focus:top-0 peer-focus:left-2 peer-focus:text-xs">
+            Password
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute inset-y-0 right-3 top-3 flex items-center cursor-pointer"
+          >
+            {showPassword ? (
+              <svg
+                className="w-5 h-5 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M3 12c1.5-3.5 5.5-6 9-6s7.5 2.5 9 6c-1.5 3.5-5.5 6-9 6S4.5 15.5 3 12zM12 14a2 2 0 110-4 2 2 0 010 4z"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="w-5 h-5 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4.5 4.5L3 6l3 3L6 6l-2.5-2.5zM21 12c-1.5-3.5-5.5-6-9-6s-7.5 2.5-9 6zM12 15a2 2 0 110-4 2 2 0 010 4z"
+                />
+              </svg>
+            )}
+          </button>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Address
-          </label>
+        {/* Address Field */}
+        <div className="relative">
           <input
             type="text"
             name="address"
             value={formData.address}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="peer mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+            placeholder=" "
             required
           />
+          <label className="absolute top-0 left-2 text-gray-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3 peer-focus:top-0 peer-focus:left-2 peer-focus:text-xs">
+            Address
+          </label>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Phone
-          </label>
+        {/* Phone Field */}
+        <div className="relative">
           <input
             type="tel"
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="peer mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+            placeholder=" "
             required
           />
+          <label className="absolute top-0 left-2 text-gray-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3 peer-focus:top-0 peer-focus:left-2 peer-focus:text-xs">
+            Phone
+          </label>
         </div>
 
-        <div>
+        {/* Image Upload */}
+        <div className="relative">
           <label className="block text-sm font-medium text-gray-700">
-            Image
+            Profile Image (Optional)
           </label>
           <input
             type="file"
             name="image"
             accept="image/*"
             onChange={handleChange}
-            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100"
-            required
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100"
           />
         </div>
 
-        <div>
-          <button
-            type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Register
-          </button>
-        </div>
-      </form>
-      <div className="mt-4">
+        {/* Error Message */}
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+
+        {/* Terms Checkbox */}
+        <p className="text-sm text-gray-600 flex items-center gap-x-2">
+          <input type="checkbox" name="check" id="check" required /> I agree to
+          the terms and conditions.
+        </p>
+
+        {/* Submit Button */}
         <button
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black bg-slate-300 hover:bg-slate-500-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          onClick={() => {
-            navigate("/");
-          }}
+          type="submit"
+          className={`w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+            loading ? "cursor-not-allowed" : ""
+          }`}
+          disabled={loading} // Disable button when loading
         >
-          Back to users
+          {loading ? (
+            <span className="flex items-center justify-center">
+              <svg
+                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V4a8 8 0 100 16v-2a8 8 0 01-8-8z"
+                />
+              </svg>
+              Registering...
+            </span>
+          ) : (
+            "Register"
+          )}
         </button>
-      </div>
+      </form>
     </div>
   );
 };
