@@ -3,12 +3,14 @@ const runValidation = require("../validations");
 const { isLoggedIn, isAdmin } = require("../middlewares/Auth");
 const {
   handleCreateProduct,
-  handleGetProduct,
   handleGetProducts,
   handleUpdateProduct,
   handleDeleteProduct,
   handleSearchProducts,
   addReview,
+  handleGetProductBySlug,
+  handleGetProductsByCategory,
+  handleGetProductsByBrand,
 } = require("../controllers/productsController");
 const { productsProfileUpload } = require("../middlewares/uploadFiles");
 const { validateProduct } = require("../validations/products");
@@ -20,7 +22,9 @@ const productsRouter = express.Router();
 productsRouter.get("/search", handleSearchProducts);
 
 productsRouter.get("/", handleGetProducts);
-productsRouter.get("/:slug", handleGetProduct);
+productsRouter.get("/category", handleGetProductsByCategory);
+// productsRouter.get("/brand", handleGetProductsByBrand);
+productsRouter.get("/:slug", handleGetProductBySlug);
 productsRouter.post(
   "/",
   // validateProduct,

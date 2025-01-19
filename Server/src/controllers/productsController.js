@@ -11,6 +11,7 @@ const {
 const { sign } = require("node:crypto");
 const { deleteProductImage } = require("../services/deleteImage");
 const Review = require("../models/reviewModel");
+const Category = require("../models/categoryModel");
 
 // Create a new product
 const handleCreateProduct = async (req, res, next) => {
@@ -85,7 +86,6 @@ const addReview = async (req, res) => {
 
   try {
     const product = await Products.findById(productId);
-    console.log(product);
 
     if (product) {
       // Create a new review
@@ -112,24 +112,38 @@ const addReview = async (req, res) => {
       product.ratings =
         product.reviews.reduce((acc, item) => item.rating + acc, 0) /
         product.reviews.length;
-
+      console.log(product);
       await product.save();
 
+      console.log("Reached");
       res.status(201).json({ message: "Review added successfully", product });
     } else {
       res.status(404).json({ message: "Product not found" });
     }
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get a single products by slug
-const handleGetProduct = async (req, res, next) => {
+// Get  products by Category
+const handleGetProductsByCategory = async (req, res, next) => {
   try {
-    const { slug } = req.params;
+    // Find the category by slug
+    const categoryDoc = await Category.findOne({
+      slug: req.query.category,
+    });
 
-    const product = await Products.findOne({ slug: slug })
+    if (!categoryDoc) {
+      return res.status(404).json({
+        success: true,
+        message: "No products found by the category",
+        payload: [], // Return an empty array if no products are found
+      });
+    }
+    console.log(categoryDoc);
+
+    const products = await Products.find({ category: categoryDoc._id })
       .populate({
         path: "reviews", // Populate reviews
         populate: {
@@ -139,15 +153,60 @@ const handleGetProduct = async (req, res, next) => {
       })
       .populate("category");
 
+    console.log(products);
+
     return successResponse(res, {
       statusCode: 200,
       message: "Return product successfully",
-      payload: { product },
+      payload: { products },
     });
   } catch (error) {
+    console.log(error.message);
     next(error);
   }
 };
+
+// Get Product by brand
+// const handleGetProductsByBrand = async (req, res, next) => {
+//   try {
+//     const { brand } = req.query;
+
+//     if (!brand) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Brand query parameter is required",
+//       });
+//     }
+
+//     const products = await Products.find({
+//       brand: { $regex: brand, $options: "i" },
+//     })
+//       .populate({
+//         path: "reviews", // Populate reviews
+//         populate: {
+//           path: "user", // Populate user details for each review
+//           select: "name email", // Select specific fields from User model, adjust as needed
+//         },
+//       })
+//       .populate("category");
+
+//     if (!products || products.length === 0) {
+//       return res.status(404).json({
+//         success: true,
+//         message: "No products found for the specified brand",
+//         payload: [], // Return an empty array if no products are found
+//       });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Products returned.",
+//       payload: products,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({ message: "Problem with controller", error });
+//   }
+// };
 
 // Update a single product by slug
 const handleUpdateProduct = async (req, res, next) => {
@@ -274,12 +333,37 @@ const handleSearchProducts = async (req, res, next) => {
   }
 };
 
+// get products by category query parameters
+const handleGetProductBySlug = async (req, res, next) => {
+  try {
+    const slug = req.params.slug;
+    const product = await Products.findOne({ slug: slug })
+      .populate({
+        path: "reviews", // Populate reviews
+        populate: {
+          path: "user", // Populate user details for each review
+          select: "name email", // Select specific fields from User model, adjust as needed
+        },
+      })
+      .populate("category");
+
+    return res.status(200).json({
+      success: true,
+      message: "Products returned.",
+      payload: product,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Problem with controller", error });
+  }
+};
+
 module.exports = {
   handleCreateProduct,
   handleGetProducts,
-  handleGetProduct,
+  handleGetProductsByCategory,
   handleUpdateProduct,
   handleDeleteProduct,
   handleSearchProducts,
   addReview,
+  handleGetProductBySlug,
 };

@@ -21,9 +21,11 @@ const {
   isAdmin,
   isBanned,
 } = require("../middlewares/Auth");
+
 const userRouter = express.Router();
 // GET: api/users/
 userRouter.get("/", isLoggedIn, isAdmin, isBanned, getUsers);
+// GET: api/users/:id
 userRouter.get("/:id([0-9a-fA-F]{24})", isLoggedIn, getUserById);
 userRouter.post(
   "/process-register/",
@@ -34,6 +36,7 @@ userRouter.post(
   processRegister
 );
 userRouter.get("/verify/", isLoggedOut, activateUserAccount);
+
 userRouter.delete("/:id([0-9a-fA-F]{24})", delteUserById);
 userRouter.put(
   "/:id([0-9a-fA-F]{24})",
