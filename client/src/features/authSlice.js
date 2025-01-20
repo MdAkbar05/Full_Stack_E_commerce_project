@@ -1,12 +1,15 @@
 import axios from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+
+const baseUrl = `${import.meta.env.DEFAULT_BASE_URL}`;
+
 // handle google login
 export const handleGoogleLogin = createAsyncThunk(
   "auth/handleGoogleLogin",
   async (data, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/auth/google-login",
+        `${baseUrl}/api/auth/google-login`,
         data
       );
       return response.data;
@@ -21,16 +24,12 @@ export const handleLogin = createAsyncThunk(
   "auth/handleLogin",
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/login",
-        data,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true, // Ensure cookies are sent
-        }
-      );
+      const response = await axios.post(`${baseUrl}/api/auth/login`, data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true, // Ensure cookies are sent
+      });
       return response.data.payload.users;
     } catch (error) {
       console.error(error.response.data.message);
@@ -48,7 +47,7 @@ export const handleRegister = createAsyncThunk(
         formData.append(key, data[key]);
       }
       const response = await axios.post(
-        "http://localhost:3000/api/users/process-register",
+        `${baseUrl}/api/users/process-register`,
         formData,
         { withCredentials: true }
       );
@@ -64,7 +63,7 @@ export const handleRegister = createAsyncThunk(
 export const handleLogout = createAsyncThunk("auth/handleLogout", async () => {
   try {
     const response = await axios.post(
-      "http://localhost:3000/api/auth/logout",
+      `${baseUrl}/api/auth/logout`,
       {},
       {
         withCredentials: true, // Ensure cookies are sent
@@ -81,15 +80,11 @@ export const handleUpdate = createAsyncThunk(
   "auth/handleUpdate",
   async ({ newData, id }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(
-        `http://localhost:3000/api/users/${id}`,
-        newData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.put(`${baseUrl}/api/users/${id}`, newData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       console.log(response.data.payload.updatedUser);
       return response.data.payload.updatedUser;
     } catch (error) {
@@ -104,7 +99,7 @@ export const handleUpdatePass = createAsyncThunk(
   async (newData, { rejectWithValue }) => {
     try {
       const response = await axios.put(
-        `http://localhost:3000/api/users/update-password/`,
+        `${baseUrl}/api/users/update-password/`,
         newData,
         {
           headers: {

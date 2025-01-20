@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getProducts } from "../../../../features/productSlice";
-import { deleteProductBySlug } from "../../../../features/deleteProductSlice";
+import { deleteProduct } from "../../../../features/productSlice";
 import AddProduct from "./AddProduct";
 import UpdateProduct from "./UpdateProduct";
+import { toast } from "react-toastify";
 
 const Products = () => {
   const [tabMenu, setTabMenu] = useState(true); // To toggle between AddProduct and UpdateProduct components
@@ -14,18 +15,25 @@ const Products = () => {
   const { products, error, isLoading } = useSelector(
     (state) => state.productsReducer
   );
-
-  const { status, error: deleteError } = useSelector(
-    (state) => state.deleteProductReducer
-  );
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     dispatch(getProducts());
   }, [dispatch]);
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Filter products by name based on search query
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const handleDelete = (slug) => {
-    dispatch(deleteProductBySlug(slug)).then(() => {
+    dispatch(deleteProduct(slug)).then(() => {
       dispatch(getProducts()); // Refresh the products list after deletion
+      toast.success("Product deleted successfully");
     });
   };
 
@@ -46,11 +54,15 @@ const Products = () => {
       <div className="text-primary text-3xl font-semibold mb-4">
         All Products
       </div>
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={handleSearchChange}
+        placeholder="Search products by name"
+        className="border p-2 rounded w-full mb-4"
+      />
       {isLoading && <div>Loading...</div>}
       {error && <div>{error}</div>}
-      {status === "loading" && <div>Deleting product...</div>}
-      {status === "succeeded" && <div>Product deleted successfully!</div>}
-      {status === "failed" && <div>Error: {deleteError}</div>}
 
       <div className="w-full h-[456px] overflow-y-scroll">
         <table className="w-full bg-white border border-gray-200 text-center">
@@ -67,9 +79,9 @@ const Products = () => {
             </tr>
           </thead>
           <tbody className="overflow-y-scroll">
-            {products &&
-              products.length > 0 &&
-              products.map((product) => (
+            {filteredProducts &&
+              filteredProducts.length > 0 &&
+              filteredProducts.map((product) => (
                 <tr key={product?._id} className="text-left">
                   <td className="py-2 px-4 border-b">
                     <img

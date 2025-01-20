@@ -1,10 +1,11 @@
 import axios from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+const baseUrl = `${import.meta.env.DEFAULT_BASE_URL}`;
 
 // Fetch all users
 export const getUsers = createAsyncThunk("users/getUsers", async () => {
   try {
-    const response = await axios.get("http://localhost:3000/api/users", {
+    const response = await axios.get(`${baseUrl}/api/users`, {
       withCredentials: true,
     });
     return response.data.payload.users;
@@ -16,7 +17,7 @@ export const getUsers = createAsyncThunk("users/getUsers", async () => {
 // Fetch all users
 export const getUser = createAsyncThunk("users/getUser", async (id) => {
   try {
-    const response = await axios.get(`http://localhost:3000/api/users/${id}`, {
+    const response = await axios.get(`${baseUrl}/api/users/${id}`, {
       withCredentials: true,
     });
     console.log(response.data);
@@ -32,7 +33,7 @@ export const banUser = createAsyncThunk(
   async (email, { rejectWithValue }) => {
     try {
       const response = await axios.put(
-        "http://localhost:3000/api/users/ban-user",
+        `${baseUrl}/api/users/ban-user`,
         { email },
         { withCredentials: true }
       );
@@ -50,7 +51,7 @@ export const unBanUser = createAsyncThunk(
   async (email, { rejectWithValue }) => {
     try {
       const response = await axios.put(
-        "http://localhost:3000/api/users/unban-user",
+        `${baseUrl}/api/users/unban-user`,
         { email },
         { withCredentials: true }
       );
@@ -67,12 +68,9 @@ export const deleteUser = createAsyncThunk(
   "users/deleteUser",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(
-        `http://localhost:3000/api/users/${id}`,
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await axios.delete(`${baseUrl}/api/users/${id}`, {
+        withCredentials: true,
+      });
 
       return response.data; // Assuming the payload contains the deleted user
     } catch (error) {

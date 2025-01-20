@@ -1,4 +1,5 @@
 import React from "react";
+import title from "./img/title.png";
 import Slider from "react-slick";
 import { testimonials } from "./data"; // Import testimonial data
 
@@ -17,8 +18,8 @@ const TestimonialSlider = () => {
       {
         breakpoint: 1024,
         settings: {
-          slidesToShow: 3,
-          slidesToScroll: 3,
+          slidesToShow: 1,
+          slidesToScroll: 1,
           infinite: true,
           dots: true,
         },
@@ -26,13 +27,13 @@ const TestimonialSlider = () => {
       {
         breakpoint: 600,
         settings: {
-          slidesToShow: 2,
-          slidesToScroll: 2,
+          slidesToShow: 1,
+          slidesToScroll: 1,
           initialSlide: 2,
         },
       },
       {
-        breakpoint: 480,
+        breakpoint: 320,
         settings: {
           slidesToShow: 1,
           slidesToScroll: 1,
@@ -42,38 +43,42 @@ const TestimonialSlider = () => {
   };
 
   return (
-    <section className="bg-white mt-4 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-center text-3xl font-bold text-primary mb-10">
-          What Our Clients Say
-        </h2>
-        {/* Horizontal Line */}
-        <hr className="w-24 mx-auto border-primary border-2 mb-12" />
-        <Slider {...settings}>
-          {testimonials.map((testimonial, index) => (
-            <div
-              key={index}
-              className="flex flex-col items-center justify-center"
-            >
-              <img
-                className=" mb-6 w-24 h-24 rounded-full border-4 border-primary mx-auto"
-                src={testimonial.image}
-                alt={testimonial.name}
-              />
+    <section className="bg-white mt-4 py-12 space-y-6">
+      {/* Title  */}
+      <img
+        className="sm:hidden md:flex w-fit"
+        src={title}
+        alt="Customer Feedbacks"
+      />
+      <h2 className="sm:block md:hidden text-3xl font-bold text-primary text-center mb-8">
+        Customer Feedbacks
+      </h2>
+      {/* Horizontal Line */}
+      <hr className="sm:block md:hidden w-24 mx-auto border-primary border-2 mb-12" />
+      <Slider {...settings}>
+        {testimonials.map((testimonial, index) => (
+          <div
+            key={index}
+            className="flex flex-col items-center justify-center"
+          >
+            <img
+              className=" mb-6 w-24 h-24 rounded-full border-4 border-primary mx-auto"
+              src={testimonial.image}
+              alt={testimonial.name}
+            />
 
-              <div className="text-center">
-                <p className="text-lg italic text-gray-700 mb-4">
-                  "{testimonial.testimonial}"
-                </p>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  {testimonial.name}
-                </h3>
-                <p className="text-sm text-gray-500">{testimonial.title}</p>
-              </div>
+            <div className="text-center">
+              <p className="text-lg italic text-gray-700 mb-4">
+                "{testimonial.testimonial}"
+              </p>
+              <h3 className="text-xl font-semibold text-gray-900">
+                {testimonial.name}
+              </h3>
+              <p className="text-sm text-gray-500">{testimonial.title}</p>
             </div>
-          ))}
-        </Slider>
-      </div>
+          </div>
+        ))}
+      </Slider>
     </section>
   );
 };

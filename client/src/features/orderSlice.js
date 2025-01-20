@@ -1,13 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-
+const baseUrl = `${import.meta.env.DEFAULT_BASE_URL}`;
 // Async thunk for submitting the order
 export const submitOrder = createAsyncThunk(
   "order/submitOrder",
   async ({ cart, shippingDetails }, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/orders",
+        `${baseUrl}/api/orders`,
         {
           cartItems: cart.item,
           totalPrice: cart.totalPrice,
@@ -29,7 +29,7 @@ export const getOrders = createAsyncThunk(
   "order/getOrders",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("http://localhost:3000/api/orders", {
+      const response = await axios.get(`${baseUrl}/api/orders`, {
         withCredentials: true,
       });
       return response.data;
@@ -45,7 +45,7 @@ export const updateOrderStatus = createAsyncThunk(
   async ({ orderId, status }, { rejectWithValue }) => {
     try {
       const response = await axios.patch(
-        "http://localhost:3000/api/orders/update-status",
+        `${baseUrl}/api/orders/update-status`,
         { orderId, status },
         { withCredentials: true }
       );

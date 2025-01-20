@@ -235,6 +235,14 @@ const Register = () => {
             "Register"
           )}
         </button>
+        <div className="mt-6">
+          <button
+            className="w-full py-3 px-4 border border-gray-300 rounded-md shadow-sm text-black bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            onClick={() => navigate("/login")}
+          >
+            Already have an account? Login
+          </button>
+        </div>
       </form>
     </div>
   );

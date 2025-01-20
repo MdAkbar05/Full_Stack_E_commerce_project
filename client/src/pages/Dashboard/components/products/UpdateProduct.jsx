@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
+import { toast } from "react-toastify";
 import {
   getProductBySlug,
   updateProduct,
@@ -24,12 +24,12 @@ const UpdateProduct = ({ productSlug }) => {
       dispatch(getProductBySlug(productSlug)).then((response) => {
         const product = response.payload;
         setFormData({
-          name: product.name,
-          description: product.description,
-          quantity: product.quantity,
-          price: product.price,
-          shipping: product.shipping,
-          sold: product.sold,
+          name: product?.name,
+          description: product?.description,
+          quantity: product?.quantity,
+          price: product?.price,
+          shipping: product?.shipping,
+          sold: product?.sold,
           image: null, // Not preloading the image
         });
       });
@@ -47,7 +47,13 @@ const UpdateProduct = ({ productSlug }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(updateProduct({ formData, slug: productSlug }));
+    dispatch(updateProduct({ formData, slug: productSlug })).then((res) => {
+      if (res.error) {
+        toast.error(res.payload.message);
+      } else {
+        toast.success("Product updated successfully");
+      }
+    });
   };
 
   return (

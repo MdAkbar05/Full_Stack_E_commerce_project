@@ -34,3 +34,27 @@ body {
 .slick-dots {
   margin-bottom: -200px;
 }
+
+.slick-arrow {
+  background-color: #2ea100 !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+.slick-prev {
+  left: 25px !important;
+  transform: scale(1.5) !important;
+  z-index: 1;
+}
+.slick-next {
+  right: 10px !important;
+  transform: scale(1.5) !important;
+  z-index: 1;
+}
+.bg-hero {
+  background-image: url("/public/bg-hero.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}

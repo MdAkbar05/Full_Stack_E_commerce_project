@@ -1,13 +1,14 @@
 import axios from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import FormData from "form-data";
+const baseUrl = `${import.meta.env.DEFAULT_BASE_URL}`;
 
 // Fetch all products
 export const getProducts = createAsyncThunk(
   "products/getProducts",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("http://localhost:3000/api/products");
+      const response = await axios.get(`${baseUrl}/api/products`);
       return response.data.payload.product;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -20,12 +21,27 @@ export const getProductBySlug = createAsyncThunk(
   "products/getProductBySlug",
   async (slug, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `http://localhost:3000/api/products/${slug}`
-      );
-      return response.data.payload.product;
+      const response = await axios.get(`${baseUrl}/api/products/${slug}`);
+      console.log(response.data);
+      return response.data.payload;
     } catch (error) {
       return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+// Fetch  products by category
+export const getProductsByCategory = createAsyncThunk(
+  "products/getProductsByCategory",
+  async (category, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/products/category?category=${category}`
+      );
+      console.log(response.data);
+      return response.data?.payload?.products;
+    } catch (error) {
+      return rejectWithValue(error.response?.data);
     }
   }
 );
@@ -41,15 +57,11 @@ export const addProduct = createAsyncThunk(
         formData.append(key, productData[key])
       );
 
-      const response = await axios.post(
-        "http://localhost:3000/api/products",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axios.post(`${baseUrl}/api/products`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return response.data.payload.product;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -63,7 +75,7 @@ export const addReview = createAsyncThunk(
   async ({ review, id }, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        `http://localhost:3000/api/products/${id}/reviews`,
+        `${baseUrl}/api/products/${id}/reviews`,
         review,
         {
           headers: {
@@ -86,7 +98,7 @@ export const updateProduct = createAsyncThunk(
   async ({ formData, slug }, { rejectWithValue }) => {
     try {
       const response = await axios.put(
-        `http://localhost:3000/api/products/${slug}`,
+        `${baseUrl}/api/products/${slug}`,
         formData,
         {
           headers: {
@@ -109,7 +121,7 @@ export const deleteProduct = createAsyncThunk(
   "products/deleteProduct",
   async (slug, { rejectWithValue }) => {
     try {
-      await axios.delete(`http://localhost:3000/api/products/${slug}`);
+      await axios.delete(`${baseUrl}/api/products/${slug}`);
       return slug; // Return the slug to remove the product from the UI
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -123,7 +135,7 @@ export const searchProducts = createAsyncThunk(
   async (query, { rejectWithValue }) => {
     try {
       const res = await axios.get(
-        `http://localhost:3000/api/products/search?query=${query}`
+        `${baseUrl}/api/products/search?query=${query}`
       );
       return res.data.payload; // Assuming `products` is an array of results
     } catch (error) {
@@ -201,6 +213,22 @@ const productsSlice = createSlice({
       state.isLoading = false;
       state.currentProduct = null;
       state.error = action.payload;
+    });
+
+    // Handling getProductByCategory
+    builder.addCase(getProductsByCategory.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(getProductsByCategory.fulfilled, (state, action) => {
+      state.isLoading = false;
+      console.log(action.payload);
+      state.filteredProducts = action.payload;
+      state.error = null;
+    });
+    builder.addCase(getProductsByCategory.rejected, (state, action) => {
+      state.isLoading = false;
+      state.filteredProducts = null;
+      state.error = action.payload.message;
     });
 
     // Handling addProduct

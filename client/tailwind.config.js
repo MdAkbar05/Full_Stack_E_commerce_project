@@ -4,12 +4,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#235BAF",
-        secondary: "#2D3A4F",
-        // primary: "#164863",
-        // secondary: "#427D9D",
+        primary: "#E8740E",
+        secondary: "rgba(232, 116, 14, 0.6)",
+        coffe: "#FFF5EB",
         background: "#DDF2FD",
-        hightlight: "#399918",
+        hightlight: "#2EA100",
         dashNav: "#ffffff41",
         dashText: "#5e7d8b",
         dashBorder: "#CFD8DC",
@@ -20,7 +19,7 @@ module.exports = {
       },
       screens: {
         sm: "354px",
-        md: "668px",
+        md: "768px",
         lg: "924px",
         xl: "1280px",
       },

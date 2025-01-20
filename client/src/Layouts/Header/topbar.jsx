@@ -3,7 +3,7 @@ import { FaPhoneAlt, FaEnvelope, FaTruck, FaGlobe } from "react-icons/fa";
 
 const TopbarInfo = () => {
   return (
-    <div className="sm:hidden md:block bg-secondary text-gray-200 py-2 px-5 text-sm">
+    <div className="sm:hidden md:block bg-white text-black py-2 px-5 text-sm">
       <div className="container mx-auto flex justify-between items-center">
         {/* Left side - Contact Info */}
         <div className="flex items-center space-x-4">

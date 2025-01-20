@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
 import { useDispatch, useSelector } from "react-redux";
-import { getProducts, toggleCategoryFilter } from "../../features/productSlice";
-import { useLocation } from "react-router-dom";
+import {
+  getProductBySlug,
+  getProducts,
+  getProductsByCategory,
+  toggleCategoryFilter,
+} from "../../features/productSlice";
+import { useLocation, useNavigate } from "react-router-dom";
 import { fetchCategories } from "../../features/categorySlice";
 import ProductsLoading from "../../components/Preloaders/productsLoading";
 
 const ProductsPage = () => {
   const dispatch = useDispatch();
-  const { state } = useLocation();
-
-  // Fetch products on component mount
-  const { products, filteredProducts, error, isLoading } = useSelector(
-    (state) => state.productsReducer
-  );
+  const location = useLocation();
+  const navigate = useNavigate();
   const { categories } = useSelector((state) => state.categoryReducer);
 
   useEffect(() => {
@@ -21,10 +22,26 @@ const ProductsPage = () => {
     dispatch(fetchCategories()).then(() => {});
   }, []);
 
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    const category = query.get("category");
+    if (category) {
+      dispatch(getProductsByCategory(category));
+    }
+  }, [location.search, dispatch]);
+
+  const handleCategoryClick = (category) => {
+    navigate(`/products?category=${category.slug}`);
+  };
+  // Fetch products on component mount
+  const { products, filteredProducts, error, isLoading } = useSelector(
+    (state) => state.productsReducer
+  );
+
   return (
     <div className="flex flex-col lg:flex-row p-4 gap-6">
       {/* Filter Category  */}
-      <div className="border border-gray-200 rounded-lg p-4 w-full lg:w-64 bg-white shadow-sm">
+      <div className="border border-gray-200 space-y-8 rounded-lg p-4 w-full lg:w-64 bg-white shadow-sm">
         <div className="text-lg font-semibold text-gray-800 mb-4">
           Filter by Category
         </div>
@@ -32,14 +49,19 @@ const ProductsPage = () => {
           categories.map((category) => (
             <div
               key={category._id}
-              className="flex justify-start items-center gap-2 mb-2"
+              className="flex justify-start items-center gap-2 mb-2 cursor-pointer"
+              onClick={() => handleCategoryClick(category)}
             >
               <input
                 type="checkbox"
-                onClick={() => dispatch(toggleCategoryFilter(category.slug))}
+                checked={
+                  new URLSearchParams(location.search).get("category") ===
+                  category.slug
+                }
+                readOnly
                 className="accent-orange-500 h-4 w-4 cursor-pointer"
               />
-              <label className="cursor-pointer text-gray-700 text-sm">
+              <label className="cursor-pointer text-gray-800 text-sm">
                 {category.name}
               </label>
             </div>
@@ -70,7 +92,7 @@ const ProductsPage = () => {
             <div className="text-red-600 text-lg">No products found</div>
           ) : (
             filteredProducts &&
-            filteredProducts.map((product) => (
+            filteredProducts?.map((product) => (
               <ProductCard key={product._id} product={product} />
             ))
           )}

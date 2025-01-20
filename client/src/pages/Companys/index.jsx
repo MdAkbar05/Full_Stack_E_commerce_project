@@ -1,4 +1,5 @@
 import React from "react";
+import title from "./img/title.png";
 import fresh from "./img/fresh.png";
 import kishwan from "./img/kishwan.png";
 import nestle from "./img/nestle.png";
@@ -21,29 +22,27 @@ const Companys = () => {
   ];
 
   return (
-    <section className="bg-white py-16 mt-4">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Section Title */}
-        <h2 className="text-3xl font-bold text-center text-primary mb-8">
-          Available Brands
-        </h2>
+    <section className="bg-white py-16 mt-4 space-y-8">
+      {/* Title  */}
+      <img
+        className="sm:hidden md:flex w-fit"
+        src={title}
+        alt="Available Brands"
+      />
+      <h2 className="sm:block md:hidden text-3xl font-bold text-primary text-center mb-8">
+        Available Brands
+      </h2>
+      {/* Horizontal Line */}
+      <hr className="sm:block md:hidden w-24 mx-auto border-primary border-2 mb-12" />
 
-        {/* Horizontal Line */}
-        <hr className="w-24 mx-auto border-primary border-2 mb-12" />
-
-        {/* Company Logos using Flexbox */}
-        <div className="flex flex-wrap justify-center items-center gap-14">
-          {companies.map((item) => (
-            <div key={item.id} className="flex flex-col items-center">
-              <img
-                src={item.logo}
-                alt={item.name}
-                className="mb-2 w-auto h-16"
-              />
-              <p className="text-gray-600 font-semibold">{item.name}</p>
-            </div>
-          ))}
-        </div>
+      {/* Company Logos using Flexbox */}
+      <div className="flex flex-wrap justify-between items-center  px-6 mx-auto gap-x-4 gap-y-8 ">
+        {companies.map((item) => (
+          <div key={item.id} className="flex flex-col items-center">
+            <img src={item.logo} alt={item.name} className="mb-2 w-auto h-28" />
+            <p className="text-gray-600 font-semibold">{item.name}</p>
+          </div>
+        ))}
       </div>
     </section>
   );

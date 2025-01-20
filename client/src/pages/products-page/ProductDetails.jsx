@@ -4,11 +4,14 @@ import Magnifier from "react-magnifier";
 import { toast } from "react-toastify";
 import { addToCart } from "../../features/cartSlice";
 import { addReview } from "../../features/productSlice";
+import { MdStar } from "react-icons/md";
 
 const ProductDetails = () => {
   const notify = (msg) => toast(msg);
   const dispatch = useDispatch();
-  const { currentProduct } = useSelector((state) => state.productsReducer);
+  const { currentProduct, isLoading } = useSelector(
+    (state) => state.productsReducer
+  );
   const profile = JSON.parse(localStorage.getItem("user"));
   // State to handle review form data
   const [review, setReview] = useState({
@@ -16,6 +19,10 @@ const ProductDetails = () => {
     rating: 0,
     comment: "",
   });
+
+  const handleStarClick = (rating) => {
+    setReview({ ...review, rating });
+  };
 
   const handleReviewSubmit = (e) => {
     e.preventDefault();
@@ -37,6 +44,12 @@ const ProductDetails = () => {
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      {/* i want to set loading in full height  */}
+      {isLoading && (
+        <div className="h-screen flex justify-center items-center text-2xl font-semibold">
+          Product Loading...
+        </div>
+      )}
       {currentProduct && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -55,34 +68,35 @@ const ProductDetails = () => {
               <h1 className="text-3xl font-bold text-gray-900">
                 {currentProduct.name}
               </h1>
-              <p className="text-xl text-gray-700">
-                Price: ৳{currentProduct.price}
+
+              <p className="text-gray-800 font-bold text-xl">
+                {currentProduct.category.name}
               </p>
-              <p className="text-gray-600">
-                Category:{" "}
-                <span className="font-semibold">
-                  {currentProduct.category.name}
+
+              <p className="text-lg text-gray-700">
+                Price:{" "}
+                <span className="text-xl font-bold">
+                  ৳{currentProduct.price}
                 </span>
-              </p>
-              <span className="flex">
-                Rating:{" "}
-                <span className="font-bold">
-                  {currentProduct.ratings.toFixed(2)}
-                </span>
-              </span>
-              <p className="text-gray-600">
-                Shipping: ৳{currentProduct.shipping}
-              </p>
-              <p className="text-gray-600">
-                Available: {currentProduct.quantity} in stock
               </p>
               <p className="text-gray-500 leading-relaxed">
                 {currentProduct.description}
               </p>
+              <div className="flex justify-start gap-4 item-center">
+                <p className="text-gray-600">
+                  Rating: {currentProduct.ratings.toFixed(2)}
+                </p>
+                <p className="text-gray-600">
+                  Shipping: ৳{currentProduct.shipping}
+                </p>
+              </div>
+              <p className="text-gray-600">
+                Available: {currentProduct.quantity} in stock
+              </p>
 
               <div className="mt-6">
                 <button
-                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+                  className="bg-hightlight text-white px-6 py-2 rounded-md hover:bg-green-500-700"
                   onClick={() => {
                     dispatch(addToCart(currentProduct));
                     notify("Product added successfully");
@@ -104,27 +118,29 @@ const ProductDetails = () => {
             {currentProduct.reviews && currentProduct.reviews.length > 0 ? (
               <div className="space-y-6">
                 {currentProduct.reviews.map((review, index) => (
-                  <div key={index} className="border-b space-y-2">
-                    <div className="flex items-center gap-4">
+                  <div
+                    key={index}
+                    className="border-b space-y-2 flex gap-8 justify-between  items-center p-6 bg-secondary rounded-xl shadow-xl"
+                  >
+                    <div className="flex flex-col items-center gap-4">
                       <span className="size-10 rounded-full font-semibold text-lg bg-primary flexCenter text-white">
                         {review.user.name?.slice(0, 1)}
                       </span>
                       <p className="">{review.user.name}</p>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="flex">
-                        {Array.from({ length: review.rating }, (_, i) => (
-                          <span key={i} className="text-lg">
-                            ✳️
-                          </span>
-                        ))}
-                      </span>
+                    <p className="text-black py-4">{review.comment}</p>
+                    <div className="flex items-center gap-4 flex-col">
                       <span>
                         {new Date(review.createdAt).toLocaleDateString()}
                       </span>
+                      <span className="flex">
+                        {Array.from({ length: review.rating }, (_, i) => (
+                          <span key={i} className="text-lg">
+                            <MdStar size={24} color="white" />
+                          </span>
+                        ))}
+                      </span>
                     </div>
-
-                    <p className="text-gray-600 py-4">{review.comment}</p>
                   </div>
                 ))}
               </div>
@@ -138,28 +154,31 @@ const ProductDetails = () => {
                 Write a Review
               </h3>
               <form onSubmit={handleReviewSubmit} className="space-y-4">
-                {/* Rating Input */}
+                {/* Star Rating Input */}
                 <div>
-                  <label
-                    htmlFor="rating"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label className="block text-sm font-medium text-gray-700">
                     Rating
                   </label>
-                  <select
+                  <div className="flex items-center space-x-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <MdStar
+                        key={star}
+                        size={32}
+                        className={`cursor-pointer ${
+                          star <= review.rating
+                            ? "text-yellow-500"
+                            : "text-gray-300"
+                        }`}
+                        onClick={() => handleStarClick(star)}
+                      />
+                    ))}
+                  </div>
+                  <input
+                    type="hidden"
                     id="rating"
                     name="rating"
                     value={review.rating}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="0">Select a rating</option>
-                    {[1, 2, 3, 4, 5].map((num) => (
-                      <option key={num} value={num}>
-                        {num}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 {/* Comment Input */}
@@ -173,22 +192,21 @@ const ProductDetails = () => {
                   <textarea
                     id="comment"
                     name="comment"
-                    rows="4"
                     value={review.comment}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
+                    onChange={(e) =>
+                      setReview({ ...review, comment: e.target.value })
+                    }
+                    rows="4"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  ></textarea>
                 </div>
 
-                {/* Submit Button */}
-                <div>
-                  <button
-                    type="submit"
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    Submit Review
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                >
+                  Submit Review
+                </button>
               </form>
             </div>
           </div>

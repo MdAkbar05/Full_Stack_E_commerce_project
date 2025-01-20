@@ -52,7 +52,10 @@ const Analytics = () => {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {/* Total Revenue */}
-        <div className="bg-white p-4 rounded-lg shadow-md flex items-center justify-between">
+        <div
+          onClick={() => navigate("/dashboard/products")}
+          className="bg-white p-4 rounded-lg shadow-md flex items-center justify-between cursor-pointer"
+        >
           <div>
             <p className="text-gray-500">Total Revenue</p>
             <h3 className="text-2xl font-bold">{totalRevenue} TK</h3>
@@ -61,7 +64,10 @@ const Analytics = () => {
         </div>
 
         {/* Total Orders */}
-        <div className="bg-white p-4 rounded-lg shadow-md flex items-center justify-between">
+        <div
+          onClick={() => navigate("/dashboard/orders")}
+          className="bg-white p-4 rounded-lg shadow-md flex items-center justify-between cursor-pointer"
+        >
           <div>
             <p className="text-gray-500">Total Orders</p>
             <h3 className="text-2xl font-bold">{totalOrders}</h3>
@@ -70,7 +76,10 @@ const Analytics = () => {
         </div>
 
         {/* Total Customers */}
-        <div className="bg-white p-4 rounded-lg shadow-md flex items-center justify-between">
+        <div
+          onClick={() => navigate("/dashboard/users")}
+          className="bg-white p-4 rounded-lg shadow-md flex items-center justify-between cursor-pointer"
+        >
           <div>
             <p className="text-gray-500">Total Users</p>
             <h3 className="text-2xl font-bold">{totalUsers}</h3>
